@@ -1,0 +1,19 @@
+{
+  "name": "blue-budget",
+  "version": "1.0.0",
+  "description": "budgeting app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joeselv/blue-budget.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/joeselv/blue-budget/issues"
+  },
+  "homepage": "https://github.com/joeselv/blue-budget#readme"
+}
