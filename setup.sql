@@ -1,31 +1,29 @@
 CREATE DATABASE BUDGET;
-/c BUDGET
+\c budget
 
 CREATE TABLE users (
-    userID INT PRIMARY KEY AUTO_INCREMENT,
-    username VARCHAR(20) UNIQUE,
-    userPassword VARCHAR(20),
-    email VARCHAR(50)
+    userID SERIAL PRIMARY KEY,
+    email VARCHAR(50),
+    userPassword VARCHAR(100)
 );
 
 CREATE TABLE accounts (
-    accountID INT PRIMARY KEY AUTO_INCREMENT,
+    accountID SERIAL PRIMARY KEY,
     userID INT,
     accountName VARCHAR(20),
-    accountPassword VARCHAR(20), 
     accountType ENUM('Checking', 'Savings', 'Credit', 'Investment'),
     balance DECIMAL(15, 2) DEFAULT 0,
     FOREIGN KEY (userID) REFERENCES users(userID)
 );
 
 CREATE TABLE categories (
-    categoryID INT PRIMARY KEY AUTO_INCREMENT,
+    categoryID SERIAL PRIMARY KEY,
     categoryName VARCHAR(20),
     categoryType ENUM('Income', 'Expense')
 );
 
 CREATE TABLE transactions (
-    transactionID INT PRIMARY KEY AUTO_INCREMENT,
+    transactionID SERIAL PRIMARY KEY,
     userID INT,
     accountID INT,
     categoryID INT,
@@ -39,7 +37,7 @@ CREATE TABLE transactions (
 );
 
 CREATE TABLE budgets (
-    budgetID INT PRIMARY KEY AUTO_INCREMENT,
+    budgetID SERIAL PRIMARY KEY,
     userID INT,
     categoryID INT,
     amount DECIMAL(15, 2),
