@@ -36,6 +36,7 @@
   <div id="loggedin-section" style="display: none;">
     <h2>You are logged in!</h2>
     <p>Welcome to your account dashboard.</p>
+    <button id="logout-button">Log Out</button> <!-- Logout button added here -->
   </div>
 
   <script>
@@ -55,13 +56,12 @@
     document.getElementById('signup-form').addEventListener('submit', async (event) => {
       event.preventDefault();
       const email = document.getElementById('signup-email').value;
-      const password = document.getElementById('signup-password').value;
-
+      const userpassword = document.getElementById('signup-password').value;
       try {
-        const response = await fetch('/signup', {
+        const response = await fetch('/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify({ email, userpassword }),
         });
         const data = await response.json();
 
@@ -82,17 +82,14 @@
     document.getElementById('login-form').addEventListener('submit', async (event) => {
       event.preventDefault();
       const email = document.getElementById('login-email').value;
-      const password = document.getElementById('login-password').value;
-      console.log(email + ", " + password);
+      const userpassword = document.getElementById('login-password').value;
       try {
         const response = await fetch('/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify({ email, userpassword }),
         });
         const data = await response.json();
-        console.log(response.json());
-
         if (response.ok) {
           document.getElementById('login-section').style.display = 'none';
           document.getElementById('loggedin-section').style.display = 'block';
@@ -102,6 +99,25 @@
         }
       } catch (error) {
         console.error('Error during login:', error);
+      }
+    });
+
+    // Handle Logout Button Click
+    document.getElementById('logout-button').addEventListener('click', async () => {
+      try {
+        const response = await fetch('/logout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        if (response.ok) {
+          alert('Logged out successfully.');
+          document.getElementById('loggedin-section').style.display = 'none';
+          document.getElementById('login-section').style.display = 'block';
+        } else {
+          console.error('Logout failed');
+        }
+      } catch (error) {
+        console.error('Error during logout:', error);
       }
     });
   </script>
