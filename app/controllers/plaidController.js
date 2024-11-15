@@ -93,6 +93,22 @@ const getTransactions = async (req, res) => {
       start_date: '2024-01-01', //desired start date
       end_date: '2024-11-30'    //desired end date
       });
+      
+      const queryText = `
+      INSERT INTO transactions (
+        transaction_id,
+        account_id,
+        amount,
+        date,
+        name,
+        category,
+        merchant_name
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+      ON CONFLICT (transaction_id) DO NOTHING;`;
+
+    for (const transaction of transactions) {
+      const { transaction_id, account_id, amount, date, name, category, merchant_name } = transaction;
+    }
       res.json(response.data.transactions); // Return the list of transactions
   } catch (error) {
       console.error('Error fetching transactions:', error);

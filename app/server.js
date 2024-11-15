@@ -4,6 +4,7 @@ const argon2 = require("argon2");
 const cookieParser = require("cookie-parser");
 const crypto = require("crypto");
 const env = require("../config/env.json");
+const {getTransactions} = require("./controllers/plaidController");
 
 const hostname = "localhost";
 const port = 3000;
@@ -143,6 +144,23 @@ app.get("/public", (req, res) => {
 app.get("/private", authorize, (req, res) => {
   res.send("A private message\n");
 });
+
+//initialize transaction table on the setup of the server
+const initializeTransactions = async () => {
+  const access_token = process.env.PLAID_ACCESS_TOKEN;
+  if (!access_token) {
+    console.warn("PLAID_ACCESS_TOKEN is missing. Skipping transaction initialization.");
+    return;
+  }
+
+  try {
+    console.log("Fetching transactions to populate database...");
+    await getTransactions({ body: { access_token } }, { json: console.log, status: () => ({ json: console.error }) });
+    console.log("Transactions successfully fetched and saved.");
+  } catch (error) {
+    console.error("Failed to fetch transactions:", error);
+  }
+};
 
 // Start the server
 app.listen(port, hostname, () => {

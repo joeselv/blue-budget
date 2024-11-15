@@ -20,9 +20,9 @@ CREATE TABLE categories (
     categoryID SERIAL PRIMARY KEY,
     categoryName VARCHAR(20),
     categoryType ENUM('Income', 'Expense')
-);
+); 
 
-CREATE TABLE transactions (
+/* CREATE TABLE transactions (
     transactionID SERIAL PRIMARY KEY,
     userID INT,
     accountID INT,
@@ -34,6 +34,16 @@ CREATE TABLE transactions (
     FOREIGN KEY (userID) REFERENCES users(userID),
     FOREIGN KEY (accountID) REFERENCES accounts(accountID),
     FOREIGN KEY (categoryID) REFERENCES categories(categoryID)
+); */
+
+CREATE TABLE IF NOT EXISTS transactions (
+    transaction_id VARCHAR(255) PRIMARY KEY,
+    account_id VARCHAR(255) NOT NULL,
+    amount NUMERIC(10, 2) NOT NULL,
+    date DATE NOT NULL,
+    name VARCHAR(255),
+    category VARCHAR(255),
+    merchant_name VARCHAR(255)
 );
 
 CREATE TABLE budgets (
