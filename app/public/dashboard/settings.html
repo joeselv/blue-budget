@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlueBudget - Settings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,200,0..1,0" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css"> 
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <img src="../../resources/blueBudgetLogo.svg" alt="BlueBudget Logo" class="logo-img">
+            BlueBudget
+        </div>
+
+        <a href="budget.html" id="budget" class="menu-item">
+            <span class="material-symbols-rounded">savings</span>
+            <span>Budget</span>
+        </a>
+        <a href="transactions.html" id="transactions" class="menu-item">
+            <span class="material-symbols-rounded">receipt_long</span>
+            <span>Transactions</span>
+        </a>
+        <a href="accounts.html" id="accounts" class="menu-item">
+            <span class="material-symbols-rounded">person</span>
+            <span>Accounts</span>
+        </a>
+        <a href="settings.html" id="settings" class="menu-item selected">
+            <span class="material-symbols-rounded">settings</span>
+            <span>Settings</span>
+        </a>
+    </div>
+
+    <div class="main-container">
+        <div class="header">
+            <p class="page-title">Settings</p>
+            <button id="logout-btn" class="logout-btn">Log Out</button>
+        </div>
+
+        <div class="content">
+            <div class="main-content">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const menuItems = document.querySelectorAll('.menu-item');
+        
+        menuItems.forEach(item => {
+            item.addEventListener('click', () => {
+                menuItems.forEach(i => i.classList.remove('selected'));
+                item.classList.add('selected');
+        
+                const pageTitle = document.querySelector('.page-title');
+                const pageName = item.querySelector('span:last-child').textContent;
+                pageTitle.textContent = pageName;
+            });
+        });
+    </script>
+</body>
+</html>
