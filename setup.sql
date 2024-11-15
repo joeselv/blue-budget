@@ -1,5 +1,9 @@
 CREATE DATABASE BUDGET;
-\c budget
+\c budget;
+
+CREATE TYPE account_type AS ENUM ('Checking', 'Savings', 'Credit', 'Investment');
+CREATE TYPE category_type AS ENUM ('Income', 'Expense');
+CREATE TYPE transaction_type AS ENUM ('Income', 'Expense');
 
 CREATE TABLE users (
     userID SERIAL PRIMARY KEY,
@@ -11,7 +15,7 @@ CREATE TABLE accounts (
     accountID SERIAL PRIMARY KEY,
     userID INT,
     accountName VARCHAR(20),
-    accountType ENUM('Checking', 'Savings', 'Credit', 'Investment'),
+    accountType account_type,
     balance DECIMAL(15, 2) DEFAULT 0,
     FOREIGN KEY (userID) REFERENCES users(userID)
 );
@@ -19,7 +23,7 @@ CREATE TABLE accounts (
 CREATE TABLE categories (
     categoryID SERIAL PRIMARY KEY,
     categoryName VARCHAR(20),
-    categoryType ENUM('Income', 'Expense')
+    categoryType category_type
 );
 
 CREATE TABLE transactions (
@@ -29,7 +33,7 @@ CREATE TABLE transactions (
     categoryID INT,
     transactionDate DATE,
     amount DECIMAL(15, 2),
-    transactionType ENUM('Income', 'Expense'),
+    transactionType transaction_type,
     transactionDescription VARCHAR(100),
     FOREIGN KEY (userID) REFERENCES users(userID),
     FOREIGN KEY (accountID) REFERENCES accounts(accountID),
@@ -46,4 +50,3 @@ CREATE TABLE budgets (
     FOREIGN KEY (userID) REFERENCES users(userID),
     FOREIGN KEY (categoryID) REFERENCES categories(categoryID)
 );
-
