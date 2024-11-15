@@ -112,7 +112,7 @@ app.post("/login", async (req, res) => {
   // Generate and store token, then set it in a cookie
   const token = makeToken();
   tokenStorage[token] = username;
-  return res.cookie("token", token, cookieOptions).send().json({ message: "Signup successful" });;
+  return res.cookie("token", token, cookieOptions).send().json({ message: "Signup successful" });
 });
 
 // Authorization Middleware
@@ -131,7 +131,7 @@ app.post("/logout", (req, res) => {
     return res.sendStatus(400); // Already logged out or invalid token
   }
   delete tokenStorage[token];
-  return res.clearCookie("token", cookieOptions).json({ message: "Login successful" });;
+  return res.clearCookie("token", cookieOptions).json({ message: "Logout successful" });
 });
 
 // Public Route
@@ -142,6 +142,11 @@ app.get("/public", (req, res) => {
 // Private Route (requires authorization)
 app.get("/private", authorize, (req, res) => {
   res.send("A private message\n");
+});
+
+// Serve the budget.html file when accessing /dashboard
+app.get('/dashboard', (req, res) => {
+  res.sendFile(__dirname + '/public/dashboard/budget.html');
 });
 
 // Start the server
