@@ -94,25 +94,68 @@ const getTransactions = async (req, res) => {
       end_date: '2024-11-30'    //desired end date
       });
       
-      const queryText = `
+    const transactions = response.data.transactions; // Transactions array from Plaid API
+
+    const queryText = `
       INSERT INTO transactions (
         transaction_id,
+        merchant_name,
         account_id,
-        amount,
-        date,
-        name,
-        category,
-        merchant_name
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+        categoryID,
+        transactionDate,
+        amount
+      ) VALUES ($1, $2, $3, $4, $5, $6)
       ON CONFLICT (transaction_id) DO NOTHING;`;
 
     for (const transaction of transactions) {
-      const { transaction_id, account_id, amount, date, name, category, merchant_name } = transaction;
+      const {
+        transaction_id,
+        account_id,
+        amount,
+        date: transactionDate,
+        category: categories,
+        merchant_name
+      } = transaction;
+
+      // Map `categories` to `categoryID` (implement logic for this based on your database schema)
+      const categoryID = await getCategoryID(categories); // Custom function to get categoryID
+
+      // Insert the transaction into the database
+      await pool.query(queryText, [
+        transaction_id,
+        merchant_name || null,
+        account_id,
+        categoryID,
+        transactionDate,
+        amount
+      ]);
     }
-      res.json(response.data.transactions); // Return the list of transactions
+
+    res.json(transactions); // Return the list of transactions
   } catch (error) {
-      console.error('Error fetching transactions:', error);
-      res.status(500).json({ error: 'Failed to fetch transactions' });
+    console.error('Error fetching transactions:', error);
+    res.status(500).json({ error: 'Failed to fetch transactions' });
+  }
+};
+
+// Helper function to map categories to categoryID
+const getCategoryID = async (categories) => {
+  if (!categories || categories.length === 0) return null;
+
+  try {
+    const query = 'SELECT categoryID FROM categories WHERE category_name = $1;';
+    const result = await pool.query(query, [categories[0]]); // Assuming first category in the array is primary
+    if (result.rows.length > 0) {
+      return result.rows[0].categoryid;
+    } else {
+      // If category doesn't exist, insert it and return the new ID
+      const insertQuery = 'INSERT INTO categories (category_name) VALUES ($1) RETURNING categoryID;';
+      const insertResult = await pool.query(insertQuery, [categories[0]]);
+      return insertResult.rows[0].categoryid;
+    }
+  } catch (error) {
+    console.error('Error getting or creating categoryID:', error);
+    throw error;
   }
 };
 

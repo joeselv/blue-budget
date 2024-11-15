@@ -26,29 +26,17 @@ CREATE TABLE categories (
     categoryType category_type
 );
 
-/* CREATE TABLE transactions (
-    transactionID SERIAL PRIMARY KEY,
-    userID INT,
-    accountID INT,
+CREATE TABLE transactions (
+    transaction_id SERIAL PRIMARY KEY,
+    merchant_name VARCHAR(255),
+    account_id INT NOT NULL,
     categoryID INT,
     transactionDate DATE,
-    amount DECIMAL(15, 2),
-    transactionType transaction_type,
-    transactionDescription VARCHAR(100),
-    FOREIGN KEY (userID) REFERENCES users(userID),
-    FOREIGN KEY (accountID) REFERENCES accounts(accountID),
+    merchant_name VARCHAR(255),
+    amount DECIMAL(15, 2) NOT NULL,
+    FOREIGN KEY (account_id) REFERENCES accounts(account_id),
     FOREIGN KEY (categoryID) REFERENCES categories(categoryID)
-); */
-
-CREATE TABLE IF NOT EXISTS transactions (
-    transaction_id VARCHAR(255) PRIMARY KEY,
-    account_id VARCHAR(255) NOT NULL,
-    amount NUMERIC(10, 2) NOT NULL,
-    date DATE NOT NULL,
-    name VARCHAR(255),
-    category VARCHAR(255),
-    merchant_name VARCHAR(255)
-);
+); 
 
 CREATE TABLE budgets (
     budgetID SERIAL PRIMARY KEY,
