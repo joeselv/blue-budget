@@ -14,19 +14,19 @@
             BlueBudget
         </div>
 
-        <a href="budget.html" id="budget" class="menu-item selected">
+        <a href="budget" id="budget" class="menu-item selected">
             <span class="material-symbols-rounded">savings</span>
             <span>Budget</span>
         </a>
-        <a href="transactions.html" id="transactions" class="menu-item">
+        <a href="transactions" id="transactions" class="menu-item">
             <span class="material-symbols-rounded">receipt_long</span>
             <span>Transactions</span>
         </a>
-        <a href="accounts.html" id="accounts" class="menu-item">
+        <a href="accounts" id="accounts" class="menu-item">
             <span class="material-symbols-rounded">person</span>
             <span>Accounts</span>
         </a>
-        <a href="settings.html" id="settings" class="menu-item">
+        <a href="settings" id="settings" class="menu-item">
             <span class="material-symbols-rounded">settings</span>
             <span>Settings</span>
         </a>
@@ -43,7 +43,7 @@
                 <div class="budget-section">
                     <div class="budget-card">
                         <div class="icon">
-                            <img src="../../resources/moneybagicon.svg" alt="Money Bag Icon">
+                            <img src="../../resources/moneyBagIcon.svg" alt="Money Bag Icon">
                         </div>
                         <div class="title">Ready to Assign</div>
                         <div class="amount">$6,000</div>
@@ -130,51 +130,66 @@
             });
 
             document.addEventListener("DOMContentLoaded", function() {
-            const budgetRows = document.querySelectorAll('.budget-table tbody tr');
+                const budgetRows = document.querySelectorAll('.budget-table tbody tr');
 
-            budgetRows.forEach(row => {
-                const assigned = parseFloat(row.children[1].textContent.replace('$', '').trim());
-                const activity = parseFloat(row.children[2].textContent.replace('$', '').trim());
-                const goal = parseFloat(row.children[4].textContent.replace('$', '').trim());
+                budgetRows.forEach(row => {
+                    const assigned = parseFloat(row.children[1].textContent.replace('$', '').trim());
+                    const activity = parseFloat(row.children[2].textContent.replace('$', '').trim());
+                    const goal = parseFloat(row.children[4].textContent.replace('$', '').trim());
 
-                const available = assigned - activity;
+                    const available = assigned - activity;
 
-                const availableCell = row.querySelector('td.activity');
-                availableCell.textContent = `$${available.toFixed(2)}`;
+                    const availableCell = row.querySelector('td.activity');
+                    availableCell.textContent = `$${available.toFixed(2)}`;
 
-                if (available < 0) {
-                    availableCell.classList.add('negative');
-                    availableCell.classList.remove('neutral');
-                } else {
-                    availableCell.classList.add('neutral');
-                    availableCell.classList.remove('negative');
-                }
+                    if (available < 0) {
+                        availableCell.classList.add('negative');
+                        availableCell.classList.remove('neutral');
+                    } else {
+                        availableCell.classList.add('neutral');
+                        availableCell.classList.remove('negative');
+                    }
 
-                const progressCell = document.createElement('td');
-                
-                const progressContainer = document.createElement('div');
-                progressContainer.classList.add('progress-container');
-                
-                const progressBar = document.createElement('div');
-                progressBar.classList.add('progress-bar');
-                
-                const progressPercent = (assigned / goal) * 100;
-                progressBar.style.width = `${Math.min(Math.max(progressPercent, 0), 100)}%`;
+                    const progressCell = document.createElement('td');
+                    
+                    const progressContainer = document.createElement('div');
+                    progressContainer.classList.add('progress-container');
+                    
+                    const progressBar = document.createElement('div');
+                    progressBar.classList.add('progress-bar');
+                    
+                    const progressPercent = (assigned / goal) * 100;
+                    progressBar.style.width = `${Math.min(Math.max(progressPercent, 0), 100)}%`;
 
-                if (assigned >= goal) {
-                    progressBar.style.backgroundColor = 'green';
-                } else if (available > 0) {
-                    progressBar.style.backgroundColor = '#fbc02d';
-                } else {
-                    progressBar.style.backgroundColor = 'red';
-                }
+                    if (assigned >= goal) {
+                        progressBar.style.backgroundColor = 'green';
+                    } else if (available > 0) {
+                        progressBar.style.backgroundColor = '#fbc02d';
+                    } else {
+                        progressBar.style.backgroundColor = 'red';
+                    }
 
-                progressContainer.appendChild(progressBar);
-                progressCell.appendChild(progressContainer);
+                    progressContainer.appendChild(progressBar);
+                    progressCell.appendChild(progressContainer);
 
-                row.insertBefore(progressCell, row.children[1]);
+                    row.insertBefore(progressCell, row.children[1]);
+                });
+
+                // Logout button event listener
+                document.getElementById('logout-btn').addEventListener('click', async () => {
+                    try {
+                        const response = await fetch('/logout', { method: 'POST' });
+                        if (response.ok) {
+                            window.location.href = '/'; // Redirect to index.html after successful logout
+                        } else {
+                            alert("Failed to log out. Please try again.");
+                        }
+                    } catch (error) {
+                        console.error("Logout error:", error);
+                        alert("An error occurred while logging out.");
+                    }
+                });
             });
-        });
         </script>
 </body>
 </html>
