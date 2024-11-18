@@ -10,6 +10,7 @@ const port = 3000;
 const pool = new Pool(env);
 const app = express();
 app.use(express.static('public'));
+app.use('/resources', express.static('resources'));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -35,21 +36,21 @@ const cookieOptions = {
 
 // Dummy validation function (expand as needed)
 function validateLogin(body) {
-  return body.username && body.password;
+  return body.email && body.userpassword;
 }
 
 // Signup Route
 app.post("/create", async (req, res) => {
-  const { username, password } = req.body;
-
+  const { email, userpassword } = req.body;
   if (!validateLogin(req.body)) {
+    console.log(validateLogin(req.body));
     return res.sendStatus(400); // Invalid input
   }
 
-  // Hash the password
+  // Hash the userpassword
   let hash;
   try {
-    hash = await argon2.hash(password);
+    hash = await argon2.hash(userpassword);
   } catch (error) {
     console.log("Hashing failed", error);
     return res.sendStatus(500);
@@ -57,8 +58,8 @@ app.post("/create", async (req, res) => {
 
   // Insert the new user
   try {
-    await pool.query("INSERT INTO users (username, password) VALUES ($1, $2)", [
-      username,
+    await pool.query("INSERT INTO users (email, userpassword) VALUES ($1, $2)", [
+      email,
       hash,
     ]);
   } catch (error) {
@@ -68,13 +69,12 @@ app.post("/create", async (req, res) => {
 
   // Automatically log in after signup
   const token = makeToken();
-  tokenStorage[token] = username;
-  return res.cookie("token", token, cookieOptions).send();
+  tokenStorage[token] = email;
+  return res.cookie("token", token, cookieOptions).json({ message: "Signup successful" });
 });
 
-// Login Route
 app.post("/login", async (req, res) => {
-  const { username, password } = req.body;
+  const { email, userpassword } = req.body;
 
   if (!validateLogin(req.body)) {
     return res.sendStatus(400); // Invalid input
@@ -82,38 +82,40 @@ app.post("/login", async (req, res) => {
 
   let result;
   try {
-    result = await pool.query("SELECT password FROM users WHERE username = $1", [
-      username,
-    ]);
+    result = await pool.query("SELECT userpassword FROM users WHERE email = $1", [email]);
   } catch (error) {
     console.log("Select failed", error);
     return res.sendStatus(500);
   }
 
   if (result.rows.length === 0) {
-    return res.sendStatus(400); // Username doesn't exist
+    return res.sendStatus(400); // email doesn't exist
   }
 
-  const hash = result.rows[0].password;
+  const hash = result.rows[0].userpassword;
 
-  // Verify the password
+  // Verify the userpassword
   let verifyResult;
   try {
-    verifyResult = await argon2.verify(hash, password);
+    verifyResult = await argon2.verify(hash, userpassword);
   } catch (error) {
     console.log("Verification failed", error);
     return res.sendStatus(500);
   }
 
   if (!verifyResult) {
-    return res.sendStatus(400); // Password did not match
+    return res.sendStatus(400); // userpassword did not match
   }
 
   // Generate and store token, then set it in a cookie
   const token = makeToken();
-  tokenStorage[token] = username;
-  return res.cookie("token", token, cookieOptions).send().json({ message: "Signup successful" });
+  tokenStorage[token] = email;
+  res.cookie("token", token, cookieOptions);
+
+  // Redirect to /budget after successful login
+  return res.redirect("/budget");
 });
+
 
 // Authorization Middleware
 const authorize = (req, res, next) => {
@@ -131,23 +133,49 @@ app.post("/logout", (req, res) => {
     return res.sendStatus(400); // Already logged out or invalid token
   }
   delete tokenStorage[token];
-  return res.clearCookie("token", cookieOptions).json({ message: "Logout successful" });
+  return res.clearCookie("token", cookieOptions).json({ message: "Logout successful" });;
 });
 
-// Public Route
-app.get("/public", (req, res) => {
-  res.send("A public message\n");
+app.get("/budget", (req, res) => {
+  const { token } = req.cookies;
+  if (!token || !tokenStorage[token]) {
+    // Redirect to index.html if not logged in
+    return res.redirect("/");
+  }
+  // Serve the budget page if the user is authorized
+  res.sendFile(__dirname + "/public/dashboard/budget.html");
 });
 
-// Private Route (requires authorization)
-app.get("/private", authorize, (req, res) => {
-  res.send("A private message\n");
+app.get("/transactions", (req, res) => {
+  const { token } = req.cookies;
+  if (!token || !tokenStorage[token]) {
+    // Redirect to index.html if not logged in
+    return res.redirect("/");
+  }
+  // Serve the budget page if the user is authorized
+  res.sendFile(__dirname + "/public/dashboard/transactions.html");
 });
 
-// Serve the budget.html file when accessing /dashboard
-app.get('/dashboard', (req, res) => {
-  res.sendFile(__dirname + '/public/dashboard/budget.html');
+app.get("/accounts", (req, res) => {
+  const { token } = req.cookies;
+  if (!token || !tokenStorage[token]) {
+    // Redirect to index.html if not logged in
+    return res.redirect("/");
+  }
+  // Serve the budget page if the user is authorized
+  res.sendFile(__dirname + "/public/dashboard/accounts.html");
 });
+
+app.get("/settings", (req, res) => {
+  const { token } = req.cookies;
+  if (!token || !tokenStorage[token]) {
+    // Redirect to index.html if not logged in
+    return res.redirect("/");
+  }
+  // Serve the budget page if the user is authorized
+  res.sendFile(__dirname + "/public/dashboard/settings.html");
+});
+
 
 // Start the server
 app.listen(port, hostname, () => {

@@ -14,19 +14,19 @@
             BlueBudget
         </div>
 
-        <a href="budget.html" id="budget" class="menu-item">
+        <a href="budget" id="budget" class="menu-item">
             <span class="material-symbols-rounded">savings</span>
             <span>Budget</span>
         </a>
-        <a href="transactions.html" id="transactions" class="menu-item">
+        <a href="transactions" id="transactions" class="menu-item">
             <span class="material-symbols-rounded">receipt_long</span>
             <span>Transactions</span>
         </a>
-        <a href="accounts.html" id="accounts" class="menu-item">
+        <a href="accounts" id="accounts" class="menu-item">
             <span class="material-symbols-rounded">person</span>
             <span>Accounts</span>
         </a>
-        <a href="settings.html" id="settings" class="menu-item selected">
+        <a href="settings" id="settings" class="menu-item selected">
             <span class="material-symbols-rounded">settings</span>
             <span>Settings</span>
         </a>
@@ -44,19 +44,6 @@
         </div>
     </div>
 
-    <script>
-        const menuItems = document.querySelectorAll('.menu-item');
-        
-        menuItems.forEach(item => {
-            item.addEventListener('click', () => {
-                menuItems.forEach(i => i.classList.remove('selected'));
-                item.classList.add('selected');
-        
-                const pageTitle = document.querySelector('.page-title');
-                const pageName = item.querySelector('span:last-child').textContent;
-                pageTitle.textContent = pageName;
-            });
-        });
-    </script>
+    <script type="module" src="dashboard/common.js"></script>
 </body>
 </html>
