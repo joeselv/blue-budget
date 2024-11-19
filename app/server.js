@@ -11,6 +11,7 @@ const port = 3000;
 const pool = new Pool(env);
 const app = express();
 app.use(express.static('public'));
+app.use('/resources', express.static('resources'));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -73,7 +74,6 @@ app.post("/create", async (req, res) => {
   return res.cookie("token", token, cookieOptions).json({ message: "Signup successful" });
 });
 
-// Login Route
 app.post("/login", async (req, res) => {
   const { email, userpassword } = req.body;
 
@@ -83,9 +83,7 @@ app.post("/login", async (req, res) => {
 
   let result;
   try {
-    result = await pool.query("SELECT userpassword FROM users WHERE email = $1", [
-      email,
-    ]);
+    result = await pool.query("SELECT userpassword FROM users WHERE email = $1", [email]);
   } catch (error) {
     console.log("Select failed", error);
     return res.sendStatus(500);
@@ -113,8 +111,12 @@ app.post("/login", async (req, res) => {
   // Generate and store token, then set it in a cookie
   const token = makeToken();
   tokenStorage[token] = email;
-  return res.cookie("token", token, cookieOptions).json({ message: "Login successful" });
+  res.cookie("token", token, cookieOptions);
+
+  // Redirect to /budget after successful login
+  return res.redirect("/budget");
 });
+
 
 // Authorization Middleware
 const authorize = (req, res, next) => {
@@ -135,16 +137,25 @@ app.post("/logout", (req, res) => {
   return res.clearCookie("token", cookieOptions).json({ message: "Logout successful" });;
 });
 
-// Public Route
-app.get("/public", (req, res) => {
-  res.send("A public message\n");
+app.get("/budget", (req, res) => {
+  const { token } = req.cookies;
+  if (!token || !tokenStorage[token]) {
+    // Redirect to index.html if not logged in
+    return res.redirect("/");
+  }
+  // Serve the budget page if the user is authorized
+  res.sendFile(__dirname + "/public/dashboard/budget.html");
 });
 
-// Private Route (requires authorization)
-app.get("/private", authorize, (req, res) => {
-  res.send("A private message\n");
+app.get("/transactions", (req, res) => {
+  const { token } = req.cookies;
+  if (!token || !tokenStorage[token]) {
+    // Redirect to index.html if not logged in
+    return res.redirect("/");
+  }
+  // Serve the budget page if the user is authorized
+  res.sendFile(__dirname + "/public/dashboard/transactions.html");
 });
-
 
 
 async function fetchTransactions() {
@@ -232,6 +243,28 @@ async function fetchTransactions() {
 
 // Example usage
 fetchTransactions("d7f1b8b9-0006-4135-91c0-b5532045a314", 0, 10, "2024-01-01", "2024-11-18");
+
+
+app.get("/accounts", (req, res) => {
+  const { token } = req.cookies;
+  if (!token || !tokenStorage[token]) {
+    // Redirect to index.html if not logged in
+    return res.redirect("/");
+  }
+  // Serve the budget page if the user is authorized
+  res.sendFile(__dirname + "/public/dashboard/accounts.html");
+});
+
+app.get("/settings", (req, res) => {
+  const { token } = req.cookies;
+  if (!token || !tokenStorage[token]) {
+    // Redirect to index.html if not logged in
+    return res.redirect("/");
+  }
+  // Serve the budget page if the user is authorized
+  res.sendFile(__dirname + "/public/dashboard/settings.html");
+});
+
 
 // Start the server
 app.listen(port, hostname, () => {
