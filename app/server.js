@@ -4,6 +4,7 @@ const argon2 = require("argon2");
 const cookieParser = require("cookie-parser");
 const crypto = require("crypto");
 const env = require("../config/env.json");
+const {getTransactions} = require("./controllers/plaidController");
 
 const hostname = "localhost";
 const port = 3000;
@@ -155,6 +156,94 @@ app.get("/transactions", (req, res) => {
   // Serve the budget page if the user is authorized
   res.sendFile(__dirname + "/public/dashboard/transactions.html");
 });
+
+
+async function fetchTransactions() {
+  // API URL
+  const url = "https://sandbox.plaid.com/transactions/get";
+
+  // Request payload
+  const payload = {
+    client_id: env.PLAID_CLIENT_ID,
+    secret: env.PLAID_SECRET,
+    access_token: "access-sandbox-fb615a41-b6ff-498e-8737-ae9ee5c2be7d", //hard coded for example
+    start_date: "2024-01-01",
+    end_date: "2024-11-18",
+    options: {
+      count: 3,
+      offset: 0,
+    },
+  };
+
+  try {
+    // Make the POST request
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload), // Send the JSON payload
+    });
+
+    // Check for response status
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`);
+    }
+
+    // Parse and log the response data
+    const data = await response.json();
+    console.log("Transactions Response:", data);
+    const transactions = data.transactions;
+
+    // Insert transactions into the database
+    for (const transaction of transactions) {
+      const {
+        transaction_id,
+        account_id,
+        amount,
+        date,
+        name,
+        category,
+        merchant_name,
+      } = {
+        ...transaction,
+        category: transaction.category ? transaction.category.join(", ") : null,
+      };
+
+      try {
+        const query = `
+          INSERT INTO transactions (transaction_id, account_id, amount, date, name, category, merchant_name)
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
+          ON CONFLICT (transaction_id) DO NOTHING
+        `;
+
+        await pool.query(query, [
+          transaction_id,
+          account_id,
+          amount,
+          date,
+          name,
+          category,
+          merchant_name,
+        ]);
+
+        console.log(`Inserted transaction: ${transaction_id}`);
+      } catch (dbError) {
+        console.error(
+          `Failed to insert transaction ${transaction_id}:`,
+          dbError
+        );
+      }
+    }
+  } catch (error) {
+    console.error("Failed to fetch transactions:", error);
+  }
+}
+
+
+// Example usage
+fetchTransactions("d7f1b8b9-0006-4135-91c0-b5532045a314", 0, 10, "2024-01-01", "2024-11-18");
+
 
 app.get("/accounts", (req, res) => {
   const { token } = req.cookies;
