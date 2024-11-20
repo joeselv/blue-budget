@@ -33,7 +33,9 @@ const createLinkToken = async (req, res) => {
       country_codes: ['US'],
       language: 'en',
     });
+    //console.log(response.data.link_token);
     res.json({ link_token: response.data.link_token });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error creating link token' });
@@ -45,7 +47,7 @@ const getAccessToken = async (req, res) => {
     const { public_token } = req.body;
   
     // Log the received public_token to ensure it is reaching the backend
-    console.log('Received public_token:', public_token);
+    //console.log('Received public_token:', public_token);
   
     if (!public_token) {
       return res.status(400).json({ error: 'Missing public_token' });
@@ -57,8 +59,9 @@ const getAccessToken = async (req, res) => {
   
       // Log the access_token received from Plaid
       console.log('Access Token:', access_token);
-  
-      res.json({ access_token });
+      req.session.access_token = accessToken;
+      // res.json({ access_token });
+      res.status(200).send({ access_token: accessToken });
     } catch (error) {
       console.error('Error exchanging public_token:', error);
       res.status(500).json({ error: 'Failed to exchange public_token' });
@@ -67,7 +70,9 @@ const getAccessToken = async (req, res) => {
 
 // Fetch Account Balances
 const getAccountBalance = async (req, res) => {
-    const { access_token } = req.body;
+    // const { access_token } = req.body;
+    const access_token = req.session.access_token;
+    console.log('Received access_token:', access_token);
     if (!access_token) {
       return res.status(400).json({ error: 'Missing access_token' });
     }
@@ -100,4 +105,34 @@ const getTransactions = async (req, res) => {
   }
 };
 
-module.exports = { createLinkToken, getAccessToken, getAccountBalance, getTransactions };
+const unlinkAccount = async (req, res) => {
+  try {
+      const { accountId } = req.body;
+      
+      // You'll need to store access tokens somewhere (database)
+      // to map accountId to its access_token
+      const accessToken = await getAccessTokenFromDatabase(accountId);
+      
+      // Remove from Plaid's Item
+      await plaidClient.itemRemove({
+          access_token: accessToken
+      });
+
+      // Remove from your database
+      await removeAccountFromDatabase(accountId);
+
+      res.json({ success: true });
+  } catch (error) {
+      console.error('Error unlinking account:', error);
+      res.status(500).json({ error: 'Failed to unlink account' });
+  }
+};
+
+module.exports = {
+  createLinkToken,
+  getAccessToken,
+  getAccountBalance,
+  getTransactions,
+  unlinkAccount 
+};
+
