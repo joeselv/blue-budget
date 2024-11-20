@@ -15,19 +15,19 @@
             BlueBudget
         </div>
 
-        <a href="budget.html" id="budget" class="menu-item">
+        <a href="budget" id="budget" class="menu-item">
             <span class="material-symbols-rounded">savings</span>
             <span>Budget</span>
         </a>
-        <a href="transactions.html" id="transactions" class="menu-item">
+        <a href="transactions" id="transactions" class="menu-item">
             <span class="material-symbols-rounded">receipt_long</span>
             <span>Transactions</span>
         </a>
-        <a href="accounts.html" id="accounts" class="menu-item selected">
+        <a href="accounts" id="accounts" class="menu-item selected">
             <span class="material-symbols-rounded">person</span>
             <span>Accounts</span>
         </a>
-        <a href="settings.html" id="settings" class="menu-item">
+        <a href="settings" id="settings" class="menu-item">
             <span class="material-symbols-rounded">settings</span>
             <span>Settings</span>
         </a>
@@ -47,6 +47,23 @@
         </div>
     </div>
 
-    <script src="../plaid.js""></script>
+
+        // Logout button event listener
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/logout', { method: 'POST' });
+                if (response.ok) {
+                    window.location.href = '/'; // Redirect to index.html after successful logout
+                } else {
+                    alert("Failed to log out. Please try again.");
+                }
+            } catch (error) {
+                console.error("Logout error:", error);
+                alert("An error occurred while logging out.");
+            }
+        });
+    </script>
+  
+      <script src="../plaid.js""></script>
 </body>
 </html>
