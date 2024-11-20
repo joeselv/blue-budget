@@ -1,9 +1,12 @@
 const express = require("express");
+const session = require("express-session");
 const { Pool } = require("pg");
 const argon2 = require("argon2");
 const cookieParser = require("cookie-parser");
 const crypto = require("crypto");
+const path = require('path'); 
 const env = require("../config/env.json");
+
 const {getTransactions} = require("./controllers/plaidController");
 
 const hostname = "localhost";
@@ -14,6 +17,14 @@ app.use(express.static('public'));
 app.use('/resources', express.static('resources'));
 app.use(express.json());
 app.use(cookieParser());
+app.use('/api/plaid', plaidRoutes);
+
+app.use(session({
+  secret: 'your_secret_key', // change this
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false } // set to true for HTTPS
+}));
 
 // In-memory storage for tokens (use a database for production)
 const tokenStorage = {};
@@ -22,6 +33,7 @@ const tokenStorage = {};
 pool.connect().then(() => {
   console.log("Connected to database");
 });
+
 
 /* Generates a random 32-byte token */
 function makeToken() {
