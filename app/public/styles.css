@@ -537,7 +537,67 @@ body {
     background-color: #d0d0d0;
 }
 
+.icon-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 20px;
+    max-height: 250px;
+    overflow-y: auto;
+    padding: 10px 0;
+}
+
+.icon-selector .icon-item {
+    width: 50px;
+    height: 50px;
+    background-color: #f5f7fa;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.icon-selector .icon-item.selected {
+    border-color: #2d60ff;
+    transform: scale(1.3);
+}
+
+.icon-selector .icon-item img {
+    max-width: 30px;
+    max-height: 30px;
+}
+
+.icon-selector .icon-item:hover {
+    background-color: #e0e0e0;
+}
+
+.icon-selector .icon-item img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+.popup-overlay.show .popup-content {
+    padding: 30px;
+    width: 350px;
+}
+
 .popup-overlay.show {
     visibility: visible;
     opacity: 1;
+    transition: visibility 0s, opacity 0.3s ease;
+}
+
+input[type="text"], textarea {
+    font-size: 16px;
+    padding: 10px;
+    margin: 8px 0;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box;
 }

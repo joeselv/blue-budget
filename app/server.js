@@ -9,6 +9,8 @@ const hostname = "localhost";
 const port = 3000;
 const pool = new Pool(env);
 const app = express();
+const fs = require('fs');
+const path = require('path');
 app.use(express.static('public'));
 app.use('/resources', express.static('resources'));
 app.use(express.json());
@@ -174,6 +176,17 @@ app.get("/settings", (req, res) => {
   }
   // Serve the budget page if the user is authorized
   res.sendFile(__dirname + "/public/dashboard/settings.html");
+});
+
+app.get('/icons', (req, res) => {
+    const iconFolderPath = path.join(__dirname, 'public/resources/categoryIcons/');
+    fs.readdir(iconFolderPath, (err, files) => {
+        if (err) {
+            return res.status(500).json({ error: 'Failed to read icon folder' });
+        }
+        const icons = files.filter(file => file.endsWith('.svg'));
+        res.json(icons);
+    });
 });
 
 

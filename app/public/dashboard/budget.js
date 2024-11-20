@@ -41,10 +41,39 @@ function applyRowStyles(row) {
 
 document.addEventListener("DOMContentLoaded", function() {
     const rows = document.querySelectorAll('.budget-table tbody tr:not(.add-category)');
-
     rows.forEach(row => {
         applyRowStyles(row);
     });
+
+    const iconFolderPath = '/resources/categoryIcons/';
+    let selectedIcon = null;
+
+    const iconSelector = document.getElementById("icon-selector");
+    iconSelector.innerHTML = '';
+
+    fetch('/icons')
+        .then(response => response.json())
+        .then(icons => {
+            icons.forEach(icon => {
+                const iconElement = document.createElement("img");
+                iconElement.src = `${iconFolderPath}${icon}`;
+                iconElement.alt = icon;
+                iconElement.classList.add("icon-item"); // Updated to match CSS
+                iconElement.dataset.iconName = icon;
+
+                iconElement.addEventListener("click", function () {
+                    document.querySelectorAll(".icon-item").forEach(item => item.classList.remove("selected"));
+                    iconElement.classList.add("selected");
+                    selectedIcon = iconElement.dataset.iconName;
+                });
+
+                iconSelector.appendChild(iconElement);
+            });
+        })
+        .catch(error => {
+            console.error("Error fetching icons:", error);
+            alert("Failed to load icons.");
+        });
 
     const addCategoryRow = document.querySelector('.add-category');
     const popupOverlay = document.getElementById('add-category-popup');
@@ -67,12 +96,17 @@ document.addEventListener("DOMContentLoaded", function() {
         const newCategory = categoryNameInput.value.trim();
         const goalAmount = parseFloat(goalAmountInput.value.trim());
 
+        if (!selectedIcon) {
+            alert("Please select an icon for the category.");
+            return;
+        }
+
         if (newCategory && !isNaN(goalAmount)) {
             const newRow = document.createElement('tr');
             
-            newRow.innerHTML = `
+            newRow.innerHTML = ` 
                 <td>
-                    <span class="material-symbols-rounded">star</span> ${newCategory}
+                    <img src="${iconFolderPath}${selectedIcon}" alt="${selectedIcon}" class="material-symbols-rounded"> ${newCategory}
                 </td>
                 <td>$0</td>
                 <td>$0</td>
@@ -85,10 +119,9 @@ document.addEventListener("DOMContentLoaded", function() {
             applyRowStyles(newRow);
 
             popupOverlay.classList.remove('show');
-            categoryName
-            popupOverlay.classList.remove('show');
             categoryNameInput.value = '';
             goalAmountInput.value = '';
+            selectedIcon = null;
         }
     });
 });
