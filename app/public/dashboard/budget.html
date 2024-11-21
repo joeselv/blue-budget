@@ -1,195 +1,308 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BlueBudget</title>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,200,0..1,0" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css">\
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>BlueBudget</title>
+   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,200,0..1,0" rel="stylesheet" />
+   <link rel="stylesheet" href="styles.css">\
 </head>
 <body>
-    <div class="sidebar">
-        <div class="logo">
-            <img src="../../resources/blueBudgetLogo.svg" alt="BlueBudget Logo" class="logo-img">
-            BlueBudget
-        </div>
+   <div class="sidebar">
+       <div class="logo">
+           <img src="../../resources/blueBudgetLogo.svg" alt="BlueBudget Logo" class="logo-img">
+           BlueBudget
+       </div>
 
-        <a href="budget" id="budget" class="menu-item selected">
-            <span class="material-symbols-rounded">savings</span>
-            <span>Budget</span>
-        </a>
-        <a href="transactions" id="transactions" class="menu-item">
-            <span class="material-symbols-rounded">receipt_long</span>
-            <span>Transactions</span>
-        </a>
-        <a href="accounts" id="accounts" class="menu-item">
-            <span class="material-symbols-rounded">person</span>
-            <span>Accounts</span>
-        </a>
-        <a href="settings" id="settings" class="menu-item">
-            <span class="material-symbols-rounded">settings</span>
-            <span>Settings</span>
-        </a>
-    </div>
 
-    <div class="main-container">
-        <div class="header">
-            <p class="page-title">Budget</p>
-            <button id="logout-btn" class="logout-btn">Log Out</button>
-        </div>
+       <a href="budget" id="budget" class="menu-item selected">
+           <span class="material-symbols-rounded">savings</span>
+           <span>Budget</span>
+       </a>
+       <a href="transactions" id="transactions" class="menu-item">
+           <span class="material-symbols-rounded">receipt_long</span>
+           <span>Transactions</span>
+       </a>
+       <a href="accounts" id="accounts" class="menu-item">
+           <span class="material-symbols-rounded">person</span>
+           <span>Accounts</span>
+       </a>
+       <a href="settings" id="settings" class="menu-item">
+           <span class="material-symbols-rounded">settings</span>
+           <span>Settings</span>
+       </a>
+   </div>
 
-        <div class="content">
-            <div class="main-content">
-                <div class="budget-section">
-                    <div class="budget-card">
-                        <div class="icon">
-                            <img src="../../resources/moneyBagIcon.svg" alt="Money Bag Icon">
-                        </div>
-                        <div class="title">Ready to Assign</div>
-                        <div class="amount">$6,000</div>
-                    </div>
-        
-                    <div class="budget-table-container">
-                        <table class="budget-table">
-                            <thead>
-                                <tr>
-                                    <th>Category</th>
-                                    <th>Progress</th>
-                                    <th>Assigned</th>
-                                    <th>Activity</th>
-                                    <th>Available</th>
-                                    <th>Goal</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <span class="material-symbols-rounded">home</span> Home
-                                    </td>
-                                    <td>$1000</td>
-                                    <td>$0</td>
-                                    <td class="activity neutral">$1,000</td>
-                                    <td>$2096</td>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <span class="material-symbols-rounded">apparel</span> Clothing
-                                    </td>
-                                    <td>$200</td>
-                                    <td>$175</td>
-                                    <td class="activity neutral">$100</td>
-                                    <td>$300</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <span class="material-symbols-rounded">beach_access</span> Rainy day
-                                    </td>
-                                    <td>$5000</td>
-                                    <td>$4850</td>
-                                    <td class="activity neutral">$150</td>
-                                    <td>$5000</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <span class="material-symbols-rounded">smartphone</span> Phone
-                                    </td>
-                                    <td>$0</td>
-                                    <td>$0</td>
-                                    <td class="activity neutral">$0</td>
-                                    <td>$45</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <span class="material-symbols-rounded">captive_portal</span> Internet
-                                    </td>
-                                    <td>$120</td>
-                                    <td>-$40</td>
-                                    <td class="activity negative">-$160</td>
-                                    <td>$80</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <script>
-            const menuItems = document.querySelectorAll('.menu-item');
-            
-            menuItems.forEach(item => {
-                item.addEventListener('click', () => {
-                    menuItems.forEach(i => i.classList.remove('selected'));
-                    item.classList.add('selected');
-        
-                    const pageTitle = document.querySelector('.page-title');
-                    const pageName = item.querySelector('span:last-child').textContent;
-                    pageTitle.textContent = pageName;
-                });
-            });
+   <div class="main-container">
+       <div class="header">
+           <p class="page-title">Budget</p>
+           <button id="logout-btn" class="logout-btn">Log Out</button>
+       </div>
 
-            document.addEventListener("DOMContentLoaded", function() {
-                const budgetRows = document.querySelectorAll('.budget-table tbody tr');
 
-                budgetRows.forEach(row => {
-                    const assigned = parseFloat(row.children[1].textContent.replace('$', '').trim());
-                    const activity = parseFloat(row.children[2].textContent.replace('$', '').trim());
-                    const goal = parseFloat(row.children[4].textContent.replace('$', '').trim());
+       <div class="content">
+           <div class="main-content">
+               <div class="budget-section">
+                   <div class = "budget-header">
+                       <div class="budget-card">
+                           <div class="icon">
+                               <img src="../../resources/moneyBagIcon.svg" alt="Money Bag Icon">
+                           </div>
+                           <div class="title">Ready to Assign</div>
+                           <div class="amount">$6,000</div>
+                       </div>
+                       <div class="pie-chart-container">
+                           <h3 class="chart-title">Budget</h3>
+                           <canvas id="budgetPieChart"></canvas>
+                       </div>
+                       <div class="pie-chart-container">
+                           <h3 class="chart-title">Spending Over Time</h3>
+                           <select id="timePeriodSelector">
+                               <option value="weekly">Last Week</option>
+                               <option value="monthly">Last Month</option>
+                               <option value="yearly">Last Year</option>
+                           </select>
+                           <canvas id="spendingPieChart"></canvas>
+                       </div>
+                      
+                   </div>
+                   <div class="budget-table-container">
+                       <table class="budget-table">
+                           <thead>
+                               <tr>
+                                   <th>Category</th>
+                                   <th>Progress</th>
+                                   <th>Assigned</th>
+                                   <th>Activity</th>
+                                   <th>Available</th>
+                                   <th>Goal</th>
+                               </tr>
+                           </thead>
+                           <tbody>
+                               <tr>
+                                   <td>
+                                       <span class="material-symbols-rounded">home</span> Home
+                                   </td>
+                                   <td>$1000</td>
+                                   <td>$0</td>
+                                   <td class="activity neutral">$1,000</td>
+                                   <td>$2096</td>
+                                   </td>
+                               </tr>
+                               <tr>
+                                   <td>
+                                       <span class="material-symbols-rounded">apparel</span> Clothing
+                                   </td>
+                                   <td>$200</td>
+                                   <td>$175</td>
+                                   <td class="activity neutral">$100</td>
+                                   <td>$300</td>
+                               </tr>
+                               <tr>
+                                   <td>
+                                       <span class="material-symbols-rounded">beach_access</span> Rainy day
+                                   </td>
+                                   <td>$5000</td>
+                                   <td>$4850</td>
+                                   <td class="activity neutral">$150</td>
+                                   <td>$5000</td>
+                               </tr>
+                               <tr>
+                                   <td>
+                                       <span class="material-symbols-rounded">smartphone</span> Phone
+                                   </td>
+                                   <td>$0</td>
+                                   <td>$0</td>
+                                   <td class="activity neutral">$0</td>
+                                   <td>$45</td>
+                               </tr>
+                               <tr>
+                                   <td>
+                                       <span class="material-symbols-rounded">captive_portal</span> Internet
+                                   </td>
+                                   <td>$120</td>
+                                   <td>-$40</td>
+                                   <td class="activity negative">-$160</td>
+                                   <td>$80</td>
+                               </tr>
+                           </tbody>
+                       </table>
+                   </div>
+               </div>
+           </div>
+       </div>
 
-                    const available = assigned - activity;
 
-                    const availableCell = row.querySelector('td.activity');
-                    availableCell.textContent = `$${available.toFixed(2)}`;
+       <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+       <script>
+           const menuItems = document.querySelectorAll('.menu-item');
+          
+           menuItems.forEach(item => {
+               item.addEventListener('click', () => {
+                   menuItems.forEach(i => i.classList.remove('selected'));
+                   item.classList.add('selected');
+      
+                   const pageTitle = document.querySelector('.page-title');
+                   const pageName = item.querySelector('span:last-child').textContent;
+                   pageTitle.textContent = pageName;
+               });
+           });
 
-                    if (available < 0) {
-                        availableCell.classList.add('negative');
-                        availableCell.classList.remove('neutral');
-                    } else {
-                        availableCell.classList.add('neutral');
-                        availableCell.classList.remove('negative');
-                    }
 
-                    const progressCell = document.createElement('td');
-                    
-                    const progressContainer = document.createElement('div');
-                    progressContainer.classList.add('progress-container');
-                    
-                    const progressBar = document.createElement('div');
-                    progressBar.classList.add('progress-bar');
-                    
-                    const progressPercent = (assigned / goal) * 100;
-                    progressBar.style.width = `${Math.min(Math.max(progressPercent, 0), 100)}%`;
+           document.addEventListener("DOMContentLoaded", function() {
+               const budgetRows = document.querySelectorAll('.budget-table tbody tr');
 
-                    if (assigned >= goal) {
-                        progressBar.style.backgroundColor = 'green';
-                    } else if (available > 0) {
-                        progressBar.style.backgroundColor = '#fbc02d';
-                    } else {
-                        progressBar.style.backgroundColor = 'red';
-                    }
 
-                    progressContainer.appendChild(progressBar);
-                    progressCell.appendChild(progressContainer);
+               budgetRows.forEach(row => {
+                   const assigned = parseFloat(row.children[1].textContent.replace('$', '').trim());
+                   const activity = parseFloat(row.children[2].textContent.replace('$', '').trim());
+                   const goal = parseFloat(row.children[4].textContent.replace('$', '').trim());
 
-                    row.insertBefore(progressCell, row.children[1]);
-                });
 
-                // Logout button event listener
-                document.getElementById('logout-btn').addEventListener('click', async () => {
-                    try {
-                        const response = await fetch('/logout', { method: 'POST' });
-                        if (response.ok) {
-                            window.location.href = '/'; // Redirect to index.html after successful logout
-                        } else {
-                            alert("Failed to log out. Please try again.");
-                        }
-                    } catch (error) {
-                        console.error("Logout error:", error);
-                        alert("An error occurred while logging out.");
-                    }
-                });
-            });
-        </script>
+                   const available = assigned - activity;
+
+
+                   const availableCell = row.querySelector('td.activity');
+                   availableCell.textContent = `$${available.toFixed(2)}`;
+
+
+                   if (available < 0) {
+                       availableCell.classList.add('negative');
+                       availableCell.classList.remove('neutral');
+                   } else {
+                       availableCell.classList.add('neutral');
+                       availableCell.classList.remove('negative');
+                   }
+
+
+                   const progressCell = document.createElement('td');
+                  
+                   const progressContainer = document.createElement('div');
+                   progressContainer.classList.add('progress-container');
+                  
+                   const progressBar = document.createElement('div');
+                   progressBar.classList.add('progress-bar');
+                  
+                   const progressPercent = (assigned / goal) * 100;
+                   progressBar.style.width = `${Math.min(Math.max(progressPercent, 0), 100)}%`;
+
+
+                   if (assigned >= goal) {
+                       progressBar.style.backgroundColor = 'green';
+                   } else if (available > 0) {
+                       progressBar.style.backgroundColor = '#fbc02d';
+                   } else {
+                       progressBar.style.backgroundColor = 'red';
+                   }
+
+
+                   progressContainer.appendChild(progressBar);
+                   progressCell.appendChild(progressContainer);
+
+
+                   row.insertBefore(progressCell, row.children[1]);
+               });
+
+
+               // Sample spending data
+           const spendingData = {
+               weekly: [300, 150, 200, 600, 100],
+               monthly: [1200, 500, 500, 2400, 700],
+               yearly: [15000, 7000, 7000, 20000, 3000]
+           };
+
+
+           const labels = ['Food', 'Gas', 'Entertainment', 'Bills', 'Other'];
+           const backgroundColors = [
+               'rgba(255, 99, 132, 0.6)',
+               'rgba(54, 162, 235, 0.6)',
+               'rgba(255, 206, 86, 0.6)',
+               'rgba(75, 192, 192, 0.6)',
+               'rgba(153, 102, 255, 0.6)'
+           ];
+
+
+           // Create the spending pie chart
+           const spendingCtx = document.getElementById('spendingPieChart').getContext('2d');
+           let spendingChart = new Chart(spendingCtx, {
+               type: 'pie',
+               data: {
+                   labels: labels,
+                   datasets: [{
+                       data: spendingData.weekly, // Default to weekly data
+                       backgroundColor: backgroundColors
+                   }]
+               },
+               options: {
+                   responsive: true,
+                   maintainAspectRatio: false
+               }
+           });
+
+
+           // Event listener for the dropdown menu
+           document.getElementById('timePeriodSelector').addEventListener('change', (event) => {
+               const selectedPeriod = event.target.value;
+               const newData = spendingData[selectedPeriod];
+
+
+               // Update chart data
+               spendingChart.data.datasets[0].data = newData;
+               spendingChart.update();
+           });
+
+
+
+
+               // Logout button event listener
+               document.getElementById('logout-btn').addEventListener('click', async () => {
+                   try {
+                       const response = await fetch('/logout', { method: 'POST' });
+                       if (response.ok) {
+                           window.location.href = '/'; // Redirect to index.html after successful logout
+                       } else {
+                           alert("Failed to log out. Please try again.");
+                       }
+                   } catch (error) {
+                       console.error("Logout error:", error);
+                       alert("An error occurred while logging out.");
+                   }
+               });
+
+
+               const categories = ['Home', 'Clothing', 'Rainy day', 'Phone', 'Internet'];
+               const assignedAmounts = [2069, 300, 5000, 45, 160];
+
+
+               const ctx = document.getElementById('budgetPieChart').getContext('2d');
+               new Chart(ctx, {
+                   type: 'pie',
+                   data: {
+                       labels: categories,
+                       datasets: [{
+                           data: assignedAmounts,
+                           backgroundColor: [
+                               'rgba(255, 99, 132, 0.6)',
+                               'rgba(54, 162, 235, 0.6)',
+                               'rgba(255, 206, 86, 0.6)',
+                               'rgba(75, 192, 192, 0.6)',
+                               'rgba(153, 102, 255, 0.6)',
+                           ],
+                           borderWidth: 1
+                       }]
+                   },
+                   options: {
+                       responsive: true,
+                       maintainAspectRatio: false,
+                       plugins: {
+                           legend: {
+                               position: 'top',
+                           },
+                       }
+                   }
+               });
+           });
+       </script>
 </body>
 </html>
