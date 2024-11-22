@@ -12,7 +12,7 @@ CREATE TABLE users (
 );
 
 CREATE TABLE accounts (
-    accountID SERIAL PRIMARY KEY,
+    account_id SERIAL PRIMARY KEY,
     userID INT,
     accountName VARCHAR(20),
     accountType account_type,
