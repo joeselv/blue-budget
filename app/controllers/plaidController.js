@@ -33,7 +33,7 @@ const createLinkToken = async (req, res) => {
       country_codes: ['US'],
       language: 'en',
     });
-    //console.log(response.data.link_token);
+
     res.json({ link_token: response.data.link_token });
 
   } catch (error) {
@@ -56,12 +56,8 @@ const getAccessToken = async (req, res) => {
     try {
       const response = await client.itemPublicTokenExchange({ public_token });
       const access_token = response.data.access_token;
-  
-      // Log the access_token received from Plaid
-      console.log('Access Token:', access_token);
-      req.session.access_token = accessToken;
-      // res.json({ access_token });
-      res.status(200).send({ access_token: accessToken });
+      
+      res.json({ access_token });
     } catch (error) {
       console.error('Error exchanging public_token:', error);
       res.status(500).json({ error: 'Failed to exchange public_token' });
@@ -70,9 +66,8 @@ const getAccessToken = async (req, res) => {
 
 // Fetch Account Balances
 const getAccountBalance = async (req, res) => {
-    // const { access_token } = req.body;
-    const access_token = req.session.access_token;
-    console.log('Received access_token:', access_token);
+    const { access_token } = req.body;
+    // const access_token = req.session.access_token;
     if (!access_token) {
       return res.status(400).json({ error: 'Missing access_token' });
     }
@@ -107,19 +102,14 @@ const getTransactions = async (req, res) => {
 
 const unlinkAccount = async (req, res) => {
   try {
-      const { accountId } = req.body;
+      const { accessToken } = req.body;
       
-      // You'll need to store access tokens somewhere (database)
-      // to map accountId to its access_token
-      const accessToken = await getAccessTokenFromDatabase(accountId);
       
       // Remove from Plaid's Item
-      await plaidClient.itemRemove({
+      await client.itemRemove({
           access_token: accessToken
       });
 
-      // Remove from your database
-      await removeAccountFromDatabase(accountId);
 
       res.json({ success: true });
   } catch (error) {

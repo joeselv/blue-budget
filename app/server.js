@@ -21,7 +21,7 @@ app.use(session({
   secret: 'your_secret_key', // change this
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: false } // set to true for HTTPS
+  cookie: { secure: true } // set to true for HTTPS
 }));
 
 // In-memory storage for tokens (use a database for production)
