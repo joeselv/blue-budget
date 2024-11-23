@@ -6,13 +6,15 @@ const cookieParser = require("cookie-parser");
 const crypto = require("crypto");
 const path = require('path'); 
 const env = require("../config/env.json");
-const plaidRoutes = require('./routes/plaidRoutes');
+
+const {getTransactions} = require("./controllers/plaidController");
 
 const hostname = "localhost";
 const port = 3000;
 const pool = new Pool(env);
 const app = express();
 app.use(express.static('public'));
+app.use('/resources', express.static('resources'));
 app.use(express.json());
 app.use(cookieParser());
 app.use('/api/plaid', plaidRoutes);
@@ -84,7 +86,6 @@ app.post("/create", async (req, res) => {
   return res.cookie("token", token, cookieOptions).json({ message: "Signup successful" });
 });
 
-// Login Route
 app.post("/login", async (req, res) => {
   const { email, userpassword } = req.body;
 
@@ -94,9 +95,7 @@ app.post("/login", async (req, res) => {
 
   let result;
   try {
-    result = await pool.query("SELECT userpassword FROM users WHERE email = $1", [
-      email,
-    ]);
+    result = await pool.query("SELECT userpassword FROM users WHERE email = $1", [email]);
   } catch (error) {
     console.log("Select failed", error);
     return res.sendStatus(500);
@@ -124,8 +123,12 @@ app.post("/login", async (req, res) => {
   // Generate and store token, then set it in a cookie
   const token = makeToken();
   tokenStorage[token] = email;
-  return res.cookie("token", token, cookieOptions).json({ message: "Login successful" });
+  res.cookie("token", token, cookieOptions);
+
+  // Redirect to /budget after successful login
+  return res.redirect("/budget");
 });
+
 
 // Authorization Middleware
 const authorize = (req, res, next) => {
@@ -146,20 +149,135 @@ app.post("/logout", (req, res) => {
   return res.clearCookie("token", cookieOptions).json({ message: "Logout successful" });;
 });
 
-// Public Route
-app.get("/public", (req, res) => {
-  res.send("A public message\n");
+app.get("/budget", (req, res) => {
+  const { token } = req.cookies;
+  if (!token || !tokenStorage[token]) {
+    // Redirect to index.html if not logged in
+    return res.redirect("/");
+  }
+  // Serve the budget page if the user is authorized
+  res.sendFile(__dirname + "/public/dashboard/budget.html");
 });
 
-// Private Route (requires authorization)
-app.get("/private", authorize, (req, res) => {
-  res.send("A private message\n");
+app.get("/transactions", (req, res) => {
+  const { token } = req.cookies;
+  if (!token || !tokenStorage[token]) {
+    // Redirect to index.html if not logged in
+    return res.redirect("/");
+  }
+  // Serve the budget page if the user is authorized
+  res.sendFile(__dirname + "/public/dashboard/transactions.html");
 });
 
-// Route to serve accounts.html
-app.get('/accounts', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public','dashboard', 'accounts.html')); // Serve accounts page
+
+async function fetchTransactions() {
+  // API URL
+  const url = "https://sandbox.plaid.com/transactions/get";
+
+  // Request payload
+  const payload = {
+    client_id: env.PLAID_CLIENT_ID,
+    secret: env.PLAID_SECRET,
+    access_token: "access-sandbox-fb615a41-b6ff-498e-8737-ae9ee5c2be7d", //hard coded for example
+    start_date: "2024-01-01",
+    end_date: "2024-11-18",
+    options: {
+      count: 3,
+      offset: 0,
+    },
+  };
+
+  try {
+    // Make the POST request
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload), // Send the JSON payload
+    });
+
+    // Check for response status
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`);
+    }
+
+    // Parse and log the response data
+    const data = await response.json();
+    console.log("Transactions Response:", data);
+    const transactions = data.transactions;
+
+    // Insert transactions into the database
+    for (const transaction of transactions) {
+      const {
+        transaction_id,
+        account_id,
+        amount,
+        date,
+        name,
+        category,
+        merchant_name,
+      } = {
+        ...transaction,
+        category: transaction.category ? transaction.category.join(", ") : null,
+      };
+
+      try {
+        const query = `
+          INSERT INTO transactions (transaction_id, account_id, amount, date, name, category, merchant_name)
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
+          ON CONFLICT (transaction_id) DO NOTHING
+        `;
+
+        await pool.query(query, [
+          transaction_id,
+          account_id,
+          amount,
+          date,
+          name,
+          category,
+          merchant_name,
+        ]);
+
+        console.log(`Inserted transaction: ${transaction_id}`);
+      } catch (dbError) {
+        console.error(
+          `Failed to insert transaction ${transaction_id}:`,
+          dbError
+        );
+      }
+    }
+  } catch (error) {
+    console.error("Failed to fetch transactions:", error);
+  }
+}
+
+
+// Example usage
+fetchTransactions("d7f1b8b9-0006-4135-91c0-b5532045a314", 0, 10, "2024-01-01", "2024-11-18");
+
+
+app.get("/accounts", (req, res) => {
+  const { token } = req.cookies;
+  if (!token || !tokenStorage[token]) {
+    // Redirect to index.html if not logged in
+    return res.redirect("/");
+  }
+  // Serve the budget page if the user is authorized
+  res.sendFile(__dirname + "/public/dashboard/accounts.html");
 });
+
+app.get("/settings", (req, res) => {
+  const { token } = req.cookies;
+  if (!token || !tokenStorage[token]) {
+    // Redirect to index.html if not logged in
+    return res.redirect("/");
+  }
+  // Serve the budget page if the user is authorized
+  res.sendFile(__dirname + "/public/dashboard/settings.html");
+});
+
+
 // Start the server
 app.listen(port, hostname, () => {
   console.log(`Server running at http://${hostname}:${port}`);

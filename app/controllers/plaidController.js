@@ -81,24 +81,24 @@ const getAccountBalance = async (req, res) => {
     }
   };
   
-const getTransactions = async (req, res) => {
-  const { access_token } = req.body;
-  if (!access_token) {
-      return res.status(400).json({ error: 'Missing access_token' });
-  }
-
-  try {
-      const response = await client.transactionsGet({
-      access_token: access_token,
-      start_date: '2024-01-01', //desired start date
-      end_date: '2024-11-30'    //desired end date
-      });
-      res.json(response.data.transactions); // Return the list of transactions
-  } catch (error) {
-      console.error('Error fetching transactions:', error);
-      res.status(500).json({ error: 'Failed to fetch transactions' });
-  }
-};
+  const getTransactions = async (req, res) => {
+    const { access_token } = req.body;
+    if (!access_token) {
+        return res.status(400).json({ error: 'Missing access_token' });
+    }
+  
+    try {
+        const response = await client.transactionsGet({
+        access_token: access_token,
+        start_date: '2024-01-01', //desired start date
+        end_date: '2024-11-30'    //desired end date
+        });
+        res.json(response.data.transactions); // Return the list of transactions
+    } catch (error) {
+        console.error('Error fetching transactions:', error);
+        res.status(500).json({ error: 'Failed to fetch transactions' });
+    }
+  };
 
 const unlinkAccount = async (req, res) => {
   try {
