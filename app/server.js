@@ -7,8 +7,6 @@ const crypto = require("crypto");
 const path = require('path'); 
 const env = require("../config/env.json");
 
-const {getTransactions} = require("./controllers/plaidController");
-
 const hostname = "localhost";
 const port = 3000;
 const pool = new Pool(env);
@@ -178,7 +176,7 @@ async function fetchTransactions() {
   const payload = {
     client_id: env.PLAID_CLIENT_ID,
     secret: env.PLAID_SECRET,
-    access_token: "access-sandbox-fb615a41-b6ff-498e-8737-ae9ee5c2be7d", //hard coded for example
+    access_token: env.PLAID_ACCESS_TOKEN, //hard coded for example
     start_date: "2024-01-01",
     end_date: "2024-11-18",
     options: {
