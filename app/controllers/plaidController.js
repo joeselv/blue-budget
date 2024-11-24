@@ -8,7 +8,10 @@ Contains functions that interact with Plaid’s API:
 */
 
 const fs = require('fs');
-const envConfig = JSON.parse(fs.readFileSync('../config/env.json', 'utf8'));
+const path = require('path');
+
+const envPath = path.join(__dirname, '../../config/env.json');
+const envConfig = JSON.parse(fs.readFileSync(envPath, 'utf8'));
 const plaid = require('plaid');
 
 const client = new plaid.PlaidApi(
