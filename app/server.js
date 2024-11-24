@@ -6,16 +6,29 @@ const cookieParser = require("cookie-parser");
 const crypto = require("crypto");
 const path = require('path'); 
 const env = require("../config/env.json");
+const plaidRoutes = require("./routes/plaidRoutes");
 
-const hostname = "localhost";
 const port = 3000;
-const pool = new Pool(env);
+let host;
+let config;
+// fly.io sets NODE_ENV to production automatically, otherwise it's unset when running locally
+if (process.env.NODE_ENV == "production") {
+	host = "0.0.0.0";
+	config = { connectionString: process.env.DATABASE_URL };
+} else {
+	host = "localhost";
+	let { PGUSER, PGPASSWORD, PGDATABASE, PGHOST, PGPORT } = process.env;
+	config = { PGUSER, PGPASSWORD, PGDATABASE, PGHOST, PGPORT };
+}
+
+
 const app = express();
-app.use(express.static('public'));
-app.use('/resources', express.static('resources'));
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/resources', express.static(path.join(__dirname, 'resources')));
 app.use(cookieParser());
 app.use('/api/plaid', plaidRoutes);
+const pool = new Pool(config);
 
 app.use(session({
   secret: 'your_secret_key', // change this
@@ -41,7 +54,7 @@ function makeToken() {
 // Cookie options for secure token handling
 const cookieOptions = {
   httpOnly: true, // Prevent client-side JavaScript access
-  secure: process.env.NODE_ENV === "production", // Only over HTTPS in production
+  secure: true, // Secure only in production and Fly.io
   sameSite: "strict", // Prevent CSRF attacks
 };
 
@@ -126,16 +139,6 @@ app.post("/login", async (req, res) => {
   // Redirect to /budget after successful login
   return res.redirect("/budget");
 });
-
-
-// Authorization Middleware
-const authorize = (req, res, next) => {
-  const { token } = req.cookies;
-  if (!token || !tokenStorage[token]) {
-    return res.sendStatus(403); // Unauthorized
-  }
-  next();
-};
 
 // Logout Route
 app.post("/logout", (req, res) => {
@@ -252,7 +255,7 @@ async function fetchTransactions() {
 
 
 // Example usage
-fetchTransactions("d7f1b8b9-0006-4135-91c0-b5532045a314", 0, 10, "2024-01-01", "2024-11-18");
+// fetchTransactions("d7f1b8b9-0006-4135-91c0-b5532045a314", 0, 10, "2024-01-01", "2024-11-18");
 
 
 app.get("/accounts", (req, res) => {
@@ -277,6 +280,6 @@ app.get("/settings", (req, res) => {
 
 
 // Start the server
-app.listen(port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}`);
+app.listen(port, host, () => {
+  console.log(`Server running at http://${host}:${port}`);
 });
