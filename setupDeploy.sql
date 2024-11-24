@@ -1,9 +1,13 @@
-CREATE TYPE account_type AS ENUM ('Checking', 'Savings', 'Credit', 'Investment');
-CREATE TYPE category_type AS ENUM ('Income', 'Expense');
-CREATE TYPE transaction_type AS ENUM ('Income', 'Expense');
+\c bluebudget
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS accounts;
+DROP TABLE IF EXISTS categories;
+DROP TABLE IF EXISTS transactions;
+DROP TABLE IF EXISTS budgets;
+DROP TYPE IF EXISTS account_type;
+DROP TYPE IF EXISTS category_type;
+DROP TYPE IF EXISTS transaction_type;
 
-CREATE DATABASE BUDGET;
-\c budget;
 
 CREATE TYPE account_type AS ENUM ('Checking', 'Savings', 'Credit', 'Investment');
 CREATE TYPE category_type AS ENUM ('Income', 'Expense');
@@ -38,10 +42,7 @@ CREATE TABLE transactions (
     transactionDate DATE,
     merchant_name VARCHAR(255),
     amount DECIMAL(15, 2) NOT NULL,
-    transactionType transaction_type,
-    transactionDescription VARCHAR(100),
-    FOREIGN KEY (userID) REFERENCES users(userID),
-    FOREIGN KEY (accountID) REFERENCES accounts(accountID),
+    FOREIGN KEY (account_id) REFERENCES accounts(account_id),
     FOREIGN KEY (categoryID) REFERENCES categories(categoryID)
 ); 
 

@@ -8,11 +8,11 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="sidebar">
-        <div class="logo">
-            <img src="../../resources/blueBudgetLogo.svg" alt="BlueBudget Logo" class="logo-img">
-            BlueBudget
-        </div>
+   <div class="sidebar">
+       <div class="logo">
+           <img src="../../resources/blueBudgetLogo.svg" alt="BlueBudget Logo" class="logo-img">
+           BlueBudget
+       </div>
 
         <a href="budget" id="budget" class="menu-item selected">
             <span class="material-symbols-rounded">savings</span>
@@ -32,11 +32,12 @@
         </a>
     </div>
 
-    <div class="main-container">
-        <div class="header">
-            <p class="page-title">Budget</p>
-            <button id="logout-btn" class="logout-btn">Log Out</button>
-        </div>
+   <div class="main-container">
+       <div class="header">
+           <p class="page-title">Budget</p>
+           <button id="logout-btn" class="logout-btn">Log Out</button>
+       </div>
+
 
         <div class="content">
             <div class="main-content">
@@ -48,6 +49,21 @@
                         <div class="title">Ready to Assign</div>
                         <div class="amount">$6,000</div>
                     </div>
+
+                    <div class="pie-chart-container">
+                        <h3 class="chart-title">Budget</h3>
+                        <canvas id="budgetPieChart"></canvas>
+                    </div>
+                    <div class="pie-chart-container">
+                        <h3 class="chart-title">Spending Over Time</h3>
+                        <select id="timePeriodSelector">
+                            <option value="weekly">Last Week</option>
+                            <option value="monthly">Last Month</option>
+                            <option value="yearly">Last Year</option>
+                        </select>
+                        <canvas id="spendingPieChart"></canvas>
+                    </div>
+                </div>
         
                     <div class="budget-table-container">
                         <table class="budget-table">
@@ -70,6 +86,7 @@
                                     <td>$0</td>
                                     <td class="activity neutral">$1,000</td>
                                     <td>$2096</td>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>
@@ -107,17 +124,13 @@
                                     <td class="activity negative">-$160</td>
                                     <td>$80</td>
                                 </tr>
-                                <tr class="add-category">
-                                    <td colspan="6" style="text-align: center; cursor: pointer; color: #2d60ff;">
-                                        <span class="material-symbols-rounded">add_circle</span> Add New Category
-                                    </td>
-                                </tr>                                 
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </div>
+
 
         <div class="popup-overlay" id="add-category-popup">
             <div class="popup-content">
@@ -141,6 +154,104 @@
 
     <script type="module" src="dashboard/common.js"></script>
     <script src="dashboard/budget.js"></script>
+    
+        <script>
+            const spendingData = {
+               weekly: [300, 150, 200, 600, 100],
+               monthly: [1200, 500, 500, 2400, 700],
+               yearly: [15000, 7000, 7000, 20000, 3000]
+           };
 
+
+           const labels = ['Food', 'Gas', 'Entertainment', 'Bills', 'Other'];
+           const backgroundColors = [
+               'rgba(255, 99, 132, 0.6)',
+               'rgba(54, 162, 235, 0.6)',
+               'rgba(255, 206, 86, 0.6)',
+               'rgba(75, 192, 192, 0.6)',
+               'rgba(153, 102, 255, 0.6)'
+           ];
+
+
+           // Create the spending pie chart
+           const spendingCtx = document.getElementById('spendingPieChart').getContext('2d');
+           let spendingChart = new Chart(spendingCtx, {
+               type: 'pie',
+               data: {
+                   labels: labels,
+                   datasets: [{
+                       data: spendingData.weekly, // Default to weekly data
+                       backgroundColor: backgroundColors
+                   }]
+               },
+               options: {
+                   responsive: true,
+                   maintainAspectRatio: false
+               }
+           });
+
+
+           // Event listener for the dropdown menu
+           document.getElementById('timePeriodSelector').addEventListener('change', (event) => {
+               const selectedPeriod = event.target.value;
+               const newData = spendingData[selectedPeriod];
+
+
+               // Update chart data
+               spendingChart.data.datasets[0].data = newData;
+               spendingChart.update();
+           });
+
+
+
+
+               // Logout button event listener
+               document.getElementById('logout-btn').addEventListener('click', async () => {
+                   try {
+                       const response = await fetch('/logout', { method: 'POST' });
+                       if (response.ok) {
+                           window.location.href = '/'; // Redirect to index.html after successful logout
+                       } else {
+                           alert("Failed to log out. Please try again.");
+                       }
+                   } catch (error) {
+                       console.error("Logout error:", error);
+                       alert("An error occurred while logging out.");
+                   }
+               });
+
+
+               const categories = ['Home', 'Clothing', 'Rainy day', 'Phone', 'Internet'];
+               const assignedAmounts = [2069, 300, 5000, 45, 160];
+
+
+               const ctx = document.getElementById('budgetPieChart').getContext('2d');
+               new Chart(ctx, {
+                   type: 'pie',
+                   data: {
+                       labels: categories,
+                       datasets: [{
+                           data: assignedAmounts,
+                           backgroundColor: [
+                               'rgba(255, 99, 132, 0.6)',
+                               'rgba(54, 162, 235, 0.6)',
+                               'rgba(255, 206, 86, 0.6)',
+                               'rgba(75, 192, 192, 0.6)',
+                               'rgba(153, 102, 255, 0.6)',
+                           ],
+                           borderWidth: 1
+                       }]
+                   },
+                   options: {
+                       responsive: true,
+                       maintainAspectRatio: false,
+                       plugins: {
+                           legend: {
+                               position: 'top',
+                           },
+                       }
+                   }
+               });
+        </script>
 </body>
 </html>
