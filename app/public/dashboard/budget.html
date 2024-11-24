@@ -41,20 +41,12 @@
 
         <div class="content">
             <div class="main-content">
-                <div class="budget-section">
+                <div class="budget-widgets">
                     <div class="budget-card">
-                        <div class="icon">
-                            <img src="../../resources/moneybagicon.svg" alt="Money Bag Icon">
-                        </div>
-                        <div class="title">Ready to Assign</div>
-                        <div class="amount">$6,000</div>
-                    </div>
-
-                    <div class="pie-chart-container">
                         <h3 class="chart-title">Budget</h3>
                         <canvas id="budgetPieChart"></canvas>
                     </div>
-                    <div class="pie-chart-container">
+                    <div class="budget-card">
                         <h3 class="chart-title">Spending Over Time</h3>
                         <select id="timePeriodSelector">
                             <option value="weekly">Last Week</option>
@@ -63,6 +55,14 @@
                         </select>
                         <canvas id="spendingPieChart"></canvas>
                     </div>
+                </div>
+
+                <div class="budget-card">
+                    <div class="icon">
+                        <img src="../../resources/moneybagicon.svg" alt="Money Bag Icon">
+                    </div>
+                    <div class="title">Ready to Assign</div>
+                    <div class="amount">$6,000</div>
                 </div>
         
                     <div class="budget-table-container">
@@ -97,33 +97,11 @@
                                     <td class="activity neutral">$100</td>
                                     <td>$300</td>
                                 </tr>
-                                <tr>
-                                    <td>
-                                        <span class="material-symbols-rounded">beach_access</span> Rainy day
-                                    </td>
-                                    <td>$5000</td>
-                                    <td>$4850</td>
-                                    <td class="activity neutral">$150</td>
-                                    <td>$5000</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <span class="material-symbols-rounded">smartphone</span> Phone
-                                    </td>
-                                    <td>$0</td>
-                                    <td>$0</td>
-                                    <td class="activity neutral">$0</td>
-                                    <td>$45</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <span class="material-symbols-rounded">captive_portal</span> Internet
-                                    </td>
-                                    <td>$120</td>
-                                    <td>-$40</td>
-                                    <td class="activity negative">-$160</td>
-                                    <td>$80</td>
-                                </tr>
+                                <tr class="add-category">
+                                    <td colspan="6" style="text-align: center; cursor: pointer; color: #2d60ff;">
+                                    <span class="material-symbols-rounded">add_circle</span> Add New Category
+                                </td>
+                            </tr>
                             </tbody>
                         </table>
                     </div>
@@ -141,6 +119,9 @@
                 <label for="goal-amount">Goal Amount</label>
                 <input type="number" id="goal-amount" placeholder="Enter goal amount">
 
+                <label for="assigned-amount">Assigned Amount</label>
+                <input type="number" id="assigned-amount" placeholder="Enter assigned amount">
+
                 <label for="category-icon">Category Icon</label>
                 <div id="icon-selector" class="icon-selector">
                 </div>
@@ -152,106 +133,106 @@
             </div>
         </div>
 
+        <div class="popup-overlay" id="edit-category-popup">
+            <div class="popup-content">
+                <h2>Edit Category</h2>
+                <label for="edit-category-name">Category Name</label>
+                <input type="text" id="edit-category-name" readonly>
+                
+                <label for="edit-assigned-amount">Assigned Amount</label>
+                <input type="number" id="edit-assigned-amount" placeholder="Enter assigned amount">
+        
+                <div class="popup-buttons">
+                    <button id="edit-category-cancel">Cancel</button>
+                    <button id="edit-category-delete" class="delete-btn">Delete</button>
+                    <button id="edit-category-confirm">Save</button>
+                </div>
+            </div>
+        </div>
+
     <script type="module" src="dashboard/common.js"></script>
     <script src="dashboard/budget.js"></script>
-    
-        <script>
-            const spendingData = {
-               weekly: [300, 150, 200, 600, 100],
-               monthly: [1200, 500, 500, 2400, 700],
-               yearly: [15000, 7000, 7000, 20000, 3000]
-           };
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        const spendingData = {
+            weekly: [300, 150, 200, 600, 100],
+            monthly: [1200, 500, 500, 2400, 700],
+            yearly: [15000, 7000, 7000, 20000, 3000]
+        };
 
 
-           const labels = ['Food', 'Gas', 'Entertainment', 'Bills', 'Other'];
-           const backgroundColors = [
-               'rgba(255, 99, 132, 0.6)',
-               'rgba(54, 162, 235, 0.6)',
-               'rgba(255, 206, 86, 0.6)',
-               'rgba(75, 192, 192, 0.6)',
-               'rgba(153, 102, 255, 0.6)'
-           ];
+        const labels = ['Food', 'Gas', 'Entertainment', 'Bills', 'Other'];
+        const backgroundColors = [
+            'rgba(255, 99, 132, 0.6)',
+            'rgba(54, 162, 235, 0.6)',
+            'rgba(255, 206, 86, 0.6)',
+            'rgba(75, 192, 192, 0.6)',
+            'rgba(153, 102, 255, 0.6)'
+        ];
 
 
-           // Create the spending pie chart
-           const spendingCtx = document.getElementById('spendingPieChart').getContext('2d');
-           let spendingChart = new Chart(spendingCtx, {
-               type: 'pie',
-               data: {
-                   labels: labels,
-                   datasets: [{
-                       data: spendingData.weekly, // Default to weekly data
-                       backgroundColor: backgroundColors
-                   }]
-               },
-               options: {
-                   responsive: true,
-                   maintainAspectRatio: false
-               }
-           });
+        // Create the spending pie chart
+        const spendingCtx = document.getElementById('spendingPieChart').getContext('2d');
+        let spendingChart = new Chart(spendingCtx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: spendingData.weekly, // Default to weekly data
+                    backgroundColor: backgroundColors
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
 
 
-           // Event listener for the dropdown menu
-           document.getElementById('timePeriodSelector').addEventListener('change', (event) => {
-               const selectedPeriod = event.target.value;
-               const newData = spendingData[selectedPeriod];
+        // Event listener for the dropdown menu
+        document.getElementById('timePeriodSelector').addEventListener('change', (event) => {
+            const selectedPeriod = event.target.value;
+            const newData = spendingData[selectedPeriod];
 
 
-               // Update chart data
-               spendingChart.data.datasets[0].data = newData;
-               spendingChart.update();
-           });
+            // Update chart data
+            spendingChart.data.datasets[0].data = newData;
+            spendingChart.update();
+        });
 
 
+        const categories = ['Home', 'Clothing', 'Rainy day', 'Phone', 'Internet'];
+        const assignedAmounts = [2069, 300, 5000, 45, 160];
 
 
-               // Logout button event listener
-               document.getElementById('logout-btn').addEventListener('click', async () => {
-                   try {
-                       const response = await fetch('/logout', { method: 'POST' });
-                       if (response.ok) {
-                           window.location.href = '/'; // Redirect to index.html after successful logout
-                       } else {
-                           alert("Failed to log out. Please try again.");
-                       }
-                   } catch (error) {
-                       console.error("Logout error:", error);
-                       alert("An error occurred while logging out.");
-                   }
-               });
-
-
-               const categories = ['Home', 'Clothing', 'Rainy day', 'Phone', 'Internet'];
-               const assignedAmounts = [2069, 300, 5000, 45, 160];
-
-
-               const ctx = document.getElementById('budgetPieChart').getContext('2d');
-               new Chart(ctx, {
-                   type: 'pie',
-                   data: {
-                       labels: categories,
-                       datasets: [{
-                           data: assignedAmounts,
-                           backgroundColor: [
-                               'rgba(255, 99, 132, 0.6)',
-                               'rgba(54, 162, 235, 0.6)',
-                               'rgba(255, 206, 86, 0.6)',
-                               'rgba(75, 192, 192, 0.6)',
-                               'rgba(153, 102, 255, 0.6)',
-                           ],
-                           borderWidth: 1
-                       }]
-                   },
-                   options: {
-                       responsive: true,
-                       maintainAspectRatio: false,
-                       plugins: {
-                           legend: {
-                               position: 'top',
-                           },
-                       }
-                   }
-               });
-        </script>
+        const ctx = document.getElementById('budgetPieChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: categories,
+                datasets: [{
+                    data: assignedAmounts,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(255, 206, 86, 0.6)',
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(153, 102, 255, 0.6)',
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                }
+            }
+        });
+    </script>
 </body>
 </html>
