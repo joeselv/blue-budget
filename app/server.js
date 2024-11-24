@@ -84,7 +84,9 @@ app.post("/login", async (req, res) => {
 
   let result;
   try {
-    result = await pool.query("SELECT userpassword FROM users WHERE email = $1", [email]);
+    result = await pool.query("SELECT userpassword FROM users WHERE email = $1", [
+      email,
+    ]);
   } catch (error) {
     console.log("Select failed", error);
     return res.sendStatus(500);
@@ -112,10 +114,7 @@ app.post("/login", async (req, res) => {
   // Generate and store token, then set it in a cookie
   const token = makeToken();
   tokenStorage[token] = email;
-  res.cookie("token", token, cookieOptions);
-
-  // Redirect to /budget after successful login
-  return res.redirect("/budget");
+  return res.cookie("token", token, cookieOptions).json({ message: "Login successful" });
 });
 
 
