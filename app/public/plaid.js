@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function(){
      // Fetch the linkk token from the backend
       const response = await fetch('/api/plaid/link-token');
       const data = await response.json();
-      // console.log(data);
+      
       // Ensure that we received a link token
       if (!data.link_token) {
         console.error('Failed to retrieve link token');
@@ -37,8 +37,8 @@ document.addEventListener('DOMContentLoaded', function(){
             body: JSON.stringify({ public_token }),
           });
           const { access_token } = await accessResponse.json();
-          console.log('Access Token:', access_token);
-          loadAccounts();
+         
+          loadAccounts(access_token);
 
         },
         onExit: (err) => {
@@ -54,12 +54,14 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 
 // Function to load and display linked accounts
-async function loadAccounts() {
+async function loadAccounts(access_token) {
+
   try {
       const accountsContainer = document.getElementById('linked-accounts-container');
       const response = await fetch('/api/plaid/account-balance', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ access_token })
       });
       
       const accounts = await response.json();
@@ -77,7 +79,7 @@ async function loadAccounts() {
                   <p>Balance: $${account.balances.current.toFixed(2)}</p>
               </div>
               <button 
-                  onclick="unlinkAccount('${account.account_id}')" 
+                  onclick="unlinkAccount('${access_token}')" 
                   class="unlink-button">
                   Unlink
               </button>
@@ -90,12 +92,13 @@ async function loadAccounts() {
 }
 
 // Function to unlink account
-async function unlinkAccount(accountId) {
+async function unlinkAccount(access_token) {
+  console.log("unlink access",access_token);
   try {
       const response = await fetch('/api/plaid/unlink-account', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ accountId })
+          body: JSON.stringify({ accessToken:access_token })
       });
 
       if (!response.ok) {
@@ -103,7 +106,7 @@ async function unlinkAccount(accountId) {
       }
 
       // Refresh the accounts display
-      loadAccounts();
+      loadAccounts(access_token);
   } catch (error) {
       console.error('Error unlinking account:', error);
       alert('Failed to unlink account. Please try again.');
