@@ -50,8 +50,43 @@ app.use(session({
 const tokenStorage = {};
 
 // Database connection
-pool.connect().then(() => {
-  console.log("Connected to database");
+pool.connect()
+.then(() => {console.log("Connected to database");}
+);
+
+//get transactions from API
+app.get("/api/transactions", async (req, res) => {
+  const { token } = req.cookies;
+  if (!token || !tokenStorage[token]) {
+      return res.sendStatus(400); 
+  }
+
+  try {
+      const result = await pool.query(`
+          SELECT 
+              transactionId, 
+              accountType, 
+              categoryType, 
+              transactiondate, 
+              amount, 
+              transactiontype, 
+              transactiondescription 
+          FROM transactions
+      `);
+      res.json(result.rows);
+  } catch (err) {
+      console.error("Error fetching transactions:", err);
+      res.status(500).send("Error fetching transactions");
+  }
+});
+
+//send html file
+app.get("/transactions", (req, res) => {
+  const { token } = req.cookies;
+  if (!token || !tokenStorage[token]) {
+      return res.redirect("/");
+  }
+  res.sendFile(path.join(__dirname, "public", "dashboard", "transactions.html"));
 });
 
 /* Generates a random 32-byte token */
