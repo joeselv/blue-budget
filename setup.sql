@@ -1,3 +1,7 @@
+CREATE TYPE account_type AS ENUM ('Checking', 'Savings', 'Credit', 'Investment');
+CREATE TYPE category_type AS ENUM ('Income', 'Expense');
+CREATE TYPE transaction_type AS ENUM ('Income', 'Expense');
+
 CREATE DATABASE BUDGET;
 \c budget;
 
@@ -34,7 +38,10 @@ CREATE TABLE transactions (
     transactionDate DATE,
     merchant_name VARCHAR(255),
     amount DECIMAL(15, 2) NOT NULL,
-    FOREIGN KEY (account_id) REFERENCES accounts(account_id),
+    transactionType transaction_type,
+    transactionDescription VARCHAR(100),
+    FOREIGN KEY (userID) REFERENCES users(userID),
+    FOREIGN KEY (accountID) REFERENCES accounts(accountID),
     FOREIGN KEY (categoryID) REFERENCES categories(categoryID)
 ); 
 
