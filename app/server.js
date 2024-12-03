@@ -5,27 +5,36 @@ const argon2 = require("argon2");
 const cookieParser = require("cookie-parser");
 const crypto = require("crypto");
 const path = require('path'); 
-const env = require("../config/env.json");
+const env = require("../config/env.json"); 
 const plaidRoutes = require("./routes/plaidRoutes");
+const fetch = require('node-fetch');
 
 const port = 3000;
 let host;
 let config;
 // fly.io sets NODE_ENV to production automatically, otherwise it's unset when running locally
 if (process.env.NODE_ENV == "production") {
-	host = "0.0.0.0";
-	config = { connectionString: process.env.DATABASE_URL };
+    host = "0.0.0.0";
+    config = { connectionString: process.env.DATABASE_URL };
 } else {
-	host = "localhost";
-	let { PGUSER, PGPASSWORD, PGDATABASE, PGHOST, PGPORT } = process.env;
-	config = { PGUSER, PGPASSWORD, PGDATABASE, PGHOST, PGPORT };
+  host = "localhost";
+  // Use the values from env.json for localhost configuration
+  config = {
+      user: env.user,
+      host: env.host,
+      database: env.database,
+      password: env.password,
+      port: env.port,
+      ssl: env.ssl
+  };
 }
 
-
 const app = express();
+const fs = require('fs');
+app.use(express.static('public'));
+app.use('/resources', express.static('resources'));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/resources', express.static(path.join(__dirname, 'resources')));
 app.use(cookieParser());
 app.use('/api/plaid', plaidRoutes);
 const pool = new Pool(config);
@@ -39,11 +48,6 @@ app.use(session({
 
 // In-memory storage for tokens (use a database for production)
 const tokenStorage = {};
-
-// Database connection
-pool.connect().then(() => {
-  console.log("Connected to database");
-});
 
 // Database connection
 pool.connect()
@@ -85,7 +89,6 @@ app.get("/transactions", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "dashboard", "transactions.html"));
 });
 
-
 /* Generates a random 32-byte token */
 function makeToken() {
   return crypto.randomBytes(32).toString("hex");
@@ -107,7 +110,7 @@ function validateLogin(body) {
 app.post("/create", async (req, res) => {
   const { email, userpassword } = req.body;
   if (!validateLogin(req.body)) {
-    console.log(validateLogin(req.body));
+    console.log("Invalid input:", req.body);
     return res.sendStatus(400); // Invalid input
   }
 
@@ -187,7 +190,7 @@ app.post("/logout", (req, res) => {
     return res.sendStatus(400); // Already logged out or invalid token
   }
   delete tokenStorage[token];
-  return res.clearCookie("token", cookieOptions).json({ message: "Logout successful" });;
+  return res.clearCookie("token", cookieOptions).json({ message: "Logout successful" });
 });
 
 app.get("/budget", (req, res) => {
@@ -209,7 +212,6 @@ app.get("/transactions", (req, res) => {
   // Serve the budget page if the user is authorized
   res.sendFile(__dirname + "/public/dashboard/transactions.html");
 });
-
 
 async function fetchTransactions() {
   // API URL
@@ -293,10 +295,8 @@ async function fetchTransactions() {
   }
 }
 
-
 // Example usage
 // fetchTransactions("d7f1b8b9-0006-4135-91c0-b5532045a314", 0, 10, "2024-01-01", "2024-11-18");
-
 
 app.get("/accounts", (req, res) => {
   const { token } = req.cookies;
@@ -304,7 +304,7 @@ app.get("/accounts", (req, res) => {
     // Redirect to index.html if not logged in
     return res.redirect("/");
   }
-  // Serve the budget page if the user is authorized
+  // Serve the accounts page if the user is authorized
   res.sendFile(__dirname + "/public/dashboard/accounts.html");
 });
 
@@ -314,10 +314,20 @@ app.get("/settings", (req, res) => {
     // Redirect to index.html if not logged in
     return res.redirect("/");
   }
-  // Serve the budget page if the user is authorized
+  // Serve the settings page if the user is authorized
   res.sendFile(__dirname + "/public/dashboard/settings.html");
 });
 
+app.get('/icons', (req, res) => {
+  const iconFolderPath = path.join(__dirname, 'public/resources/categoryIcons/');
+  fs.readdir(iconFolderPath, (err, files) => {
+      if (err) {
+          return res.status(500).json({ error: 'Failed to read icon folder' });
+      }
+      const icons = files.filter(file => file.endsWith('.svg'));
+      res.json(icons);
+  });
+});
 
 // Start the server
 app.listen(port, host, () => {
