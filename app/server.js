@@ -296,7 +296,7 @@ async function fetchTransactions() {
 }
 
 // Example usage
-// fetchTransactions("d7f1b8b9-0006-4135-91c0-b5532045a314", 0, 10, "2024-01-01", "2024-11-18");
+fetchTransactions("d7f1b8b9-0006-4135-91c0-b5532045a314", 0, 10, "2024-01-01", "2024-11-18");
 
 app.get("/accounts", (req, res) => {
   const { token } = req.cookies;
