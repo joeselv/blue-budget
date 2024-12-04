@@ -139,7 +139,7 @@
 
             // Fetch data
             try {
-                const response = await fetch('/transactions');
+                const response = await fetch('/api/transactions');
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -159,19 +159,19 @@
                     const row = document.createElement('tr');
 
                     const transactionIdCell = document.createElement('td');
-                    transactionIdCell.textContent = transaction.transactionid;
+                    transactionIdCell.textContent = transaction.transaction_id;
                     row.appendChild(transactionIdCell);
 
                     const accountTypeCell = document.createElement('td');
-                    accountTypeCell.textContent = transaction.accounttype;
+                    accountTypeCell.textContent = transaction.account_id;
                     row.appendChild(accountTypeCell);
 
                     const categoryTypeCell = document.createElement('td');
-                    categoryTypeCell.textContent = transaction.categorytype;
+                    //categoryTypeCell.textContent = transaction.category;
                     row.appendChild(categoryTypeCell);
 
                     const transactionDateCell = document.createElement('td');
-                    const date = new Date(transaction.transactiondate);
+                    const date = new Date(transaction.date);
                     transactionDateCell.textContent = new Intl.DateTimeFormat('en-CA').format(date);
                     row.appendChild(transactionDateCell);
 
@@ -179,14 +179,16 @@
                     amountCell.textContent = transaction.amount;
                     row.appendChild(amountCell);
 
+                    
                     const transactionTypeCell = document.createElement('td');
-                    transactionTypeCell.textContent = transaction.transactiontype;
+                    //transactionTypeCell.textContent = transaction.transactiontype;
                     row.appendChild(transactionTypeCell);
 
                     const transactionDescriptionCell = document.createElement('td');
-                    transactionDescriptionCell.textContent = transaction.transactiondescription;
+                    transactionDescriptionCell.textContent = transaction.merchant_name;
                     row.appendChild(transactionDescriptionCell);
 
+                    
                     tableBody.appendChild(row);
                 });
             }

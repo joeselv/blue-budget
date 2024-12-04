@@ -64,13 +64,13 @@ app.get("/api/transactions", async (req, res) => {
   try {
       const result = await pool.query(`
           SELECT 
-              transactionId, 
-              accountType, 
-              categoryType, 
-              transactiondate, 
+              transaction_id, 
+              account_id, 
               amount, 
-              transactiontype, 
-              transactiondescription 
+              date, 
+              name, 
+              category, 
+              merchant_name
           FROM transactions
       `);
       res.json(result.rows);
@@ -80,14 +80,6 @@ app.get("/api/transactions", async (req, res) => {
   }
 });
 
-//send html file
-app.get("/transactions", (req, res) => {
-  const { token } = req.cookies;
-  if (!token || !tokenStorage[token]) {
-      return res.redirect("/");
-  }
-  res.sendFile(path.join(__dirname, "public", "dashboard", "transactions.html"));
-});
 
 /* Generates a random 32-byte token */
 function makeToken() {
@@ -296,7 +288,7 @@ async function fetchTransactions() {
 }
 
 // Example usage
-// fetchTransactions("d7f1b8b9-0006-4135-91c0-b5532045a314", 0, 10, "2024-01-01", "2024-11-18");
+fetchTransactions("d7f1b8b9-0006-4135-91c0-b5532045a314", 0, 10, "2024-01-01", "2024-11-18");
 
 app.get("/accounts", (req, res) => {
   const { token } = req.cookies;
