@@ -109,7 +109,7 @@ app.post("/login", async (req, res) => {
   const { email, userpassword } = req.body;
 
   if (!validateLogin(req.body)) {
-    return res.sendStatus(400); // Invalid input
+    return res.sendStatus(400);
   }
 
   let result;
@@ -121,12 +121,11 @@ app.post("/login", async (req, res) => {
   }
 
   if (result.rows.length === 0) {
-    return res.sendStatus(400); // email doesn't exist
+    return res.sendStatus(400);
   }
 
   const hash = result.rows[0].userpassword;
 
-  // Verify the userpassword
   let verifyResult;
   try {
     verifyResult = await argon2.verify(hash, userpassword);
@@ -136,7 +135,7 @@ app.post("/login", async (req, res) => {
   }
 
   if (!verifyResult) {
-    return res.sendStatus(400); // userpassword did not match
+    return res.sendStatus(400);
   }
 
   // Generate and store token, then set it in a cookie
@@ -294,7 +293,58 @@ app.get('/icons', (req, res) => {
   });
 });
 
-// Start the server
+app.get('/categories', async (req, res) => {
+  const { userID, budgetID } = req.query;
+  
+  if (!userID || !budgetID) {
+    return res.status(400).send({ error: 'userID and budgetID are required.' });
+  }
+  
+  try {
+    const result = await pool.query(
+      `SELECT c.category_id, c.category_name, b.amount, b.start_date, b.end_date 
+       FROM categories c 
+       LEFT JOIN budgets b ON c.category_id = b.category_id
+       WHERE c.user_id = $1 AND b.budget_id = $2;`,
+      [userID, budgetID]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: 'An error occurred while fetching categories.' });
+  }
+});
+
+app.post('/categories', async (req, res) => {
+  const { categoryName, iconName, userID, budgetID, goalAmount, assignedAmount } = req.body;
+
+  if (!categoryName || !userID || !budgetID || !goalAmount) {
+    return res.status(400).send({ error: 'categoryName, userID, budgetID, and goalAmount are required.' });
+  }
+
+  try {
+    const categoryResult = await pool.query(
+      `INSERT INTO categories (category_name, icon_name, user_id, budget_id, goal_amount, assigned_amount) 
+       VALUES ($1, $2, $3, $4, $5, COALESCE($6, 0)) 
+       RETURNING category_id;`,
+      [categoryName, iconName, userID, budgetID, goalAmount, assignedAmount]
+    );
+
+    const categoryID = categoryResult.rows[0].categoryID;
+
+    res.status(201).send({ categoryID });
+    } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: 'An error occurred while creating the category.' });
+  }
+});
+
+app.delete('/categories/:id', async (req, res) => {
+  const { id } = req.params;
+  await pool.query(`DELETE FROM categories WHERE categoryID = $1;`, [id]);
+  res.sendStatus(204);
+});
+
 app.listen(port, host, () => {
   console.log(`Server running at http://${host}:${port}`);
 });

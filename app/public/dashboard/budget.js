@@ -58,7 +58,6 @@ function applyRowStyles(row) {
         editButtonCell.appendChild(editButton);
     }
 
-    // Edit button click handler
     editButton.addEventListener('click', () => {
         openEditPopup(row);
     });
@@ -158,38 +157,92 @@ document.addEventListener("DOMContentLoaded", function() {
         goalAmountInput.value = '';
     });
 
-    addButton.addEventListener('click', () => {
+    addButton.addEventListener('click', async () => {
         const newCategory = categoryNameInput.value.trim();
         const goalAmount = parseFloat(goalAmountInput.value.trim());
         const assignedAmount = parseFloat(document.getElementById('assigned-amount').value.trim());
-
+        const userID = '1';
+        const budgetID = '1';
+    
         if (!selectedIcon) {
             alert("Please select an icon for the category.");
             return;
         }
-
-        if (newCategory && !isNaN(goalAmount)) {
+    
+        if (!newCategory || isNaN(goalAmount) || goalAmount <= 0 || !userID || !budgetID) {
+            alert("Please fill all required fields correctly.");
+            return;
+        }
+    
+        try {
+            // Send data to the server
+            const response = await fetch('/categories', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    categoryName: newCategory,
+                    iconName: selectedIcon,
+                    userID: userID,
+                    budgetID: budgetID,
+                    goalAmount: goalAmount,
+                    assignedAmount: isNaN(assignedAmount) ? 0 : assignedAmount,
+                }),
+            });
+    
+            if (!response.ok) {
+                throw new Error(`Error: ${response.statusText}`);
+            }
+    
+            const { categoryID } = await response.json();
+    
+            // Add the new category row to the table
             const newRow = document.createElement('tr');
-            
             newRow.innerHTML = ` 
                 <td>
                     <img src="${iconFolderPath}${selectedIcon}" alt="${selectedIcon}" class="material-symbols-rounded"> ${newCategory}
                 </td>
-                <td>$${assignedAmount.toFixed(2)}</td>
+                <td>$${(isNaN(assignedAmount) ? 0 : assignedAmount).toFixed(2)}</td>
                 <td>$0</td>
                 <td class="activity neutral">$0</td>
                 <td>$${goalAmount.toFixed(2)}</td>
             `;
-            
             document.querySelector('.budget-table tbody').insertBefore(newRow, addCategoryRow);
-            
+    
             applyRowStyles(newRow);
-
+    
             popupOverlay.classList.remove('show');
             categoryNameInput.value = '';
             goalAmountInput.value = '';
-            selectedIcon = null;
+            document.getElementById('assigned-amount').value = '';
+            selectedIcon = null;    
+        } catch (error) {
+            console.error("Error adding category:", error);
+            alert("Failed to add category. Please try again later.");
         }
+    });
+
+    document.getElementById('edit-amount-btn').addEventListener('click', function() {
+        const currentAmount = document.getElementById('ready-to-assign-amount').textContent.replace('$', '').trim();
+        document.getElementById('popup-amount-input').value = currentAmount;
+        document.getElementById('edit-ready-to-assign-popup').classList.add('show');
+    });
+
+    document.getElementById('save-btn').addEventListener('click', function() {
+        const newAmount = parseFloat(document.getElementById('popup-amount-input').value.trim());
+        
+        if (isNaN(newAmount) || newAmount <= 0) {
+            alert('Please enter a valid amount.');
+            return;
+        }
+
+        document.getElementById('ready-to-assign-amount').textContent = `$${newAmount.toFixed(2)}`;        
+        document.getElementById('edit-ready-to-assign-popup').classList.remove('show');
+    });
+
+    document.getElementById('cancel-btn').addEventListener('click', function() {
+        document.getElementById('edit-ready-to-assign-popup').classList.remove('show');
     });
 });
 
