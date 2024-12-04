@@ -35,7 +35,7 @@ CREATE TABLE transactions (
     merchant_name VARCHAR(255),
     account_id INT NOT NULL,
     categoryID INT,
-    catergory VARCHAR(20),
+    category VARCHAR(20),
     transactionDate DATE,
     merchant_name VARCHAR(255),
     amount DECIMAL(15, 2) NOT NULL,
