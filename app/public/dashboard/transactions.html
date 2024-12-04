@@ -179,6 +179,7 @@
                     amountCell.textContent = transaction.amount;
                     row.appendChild(amountCell);
 
+                    
                     const transactionTypeCell = document.createElement('td');
                     //transactionTypeCell.textContent = transaction.transactiontype;
                     row.appendChild(transactionTypeCell);
@@ -187,6 +188,7 @@
                     transactionDescriptionCell.textContent = transaction.merchant_name;
                     row.appendChild(transactionDescriptionCell);
 
+                    
                     tableBody.appendChild(row);
                 });
             }
