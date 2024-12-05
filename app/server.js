@@ -64,13 +64,11 @@ app.get("/api/transactions", async (req, res) => {
   try {
       const result = await pool.query(`
           SELECT 
-              transactionId, 
-              accountType, 
-              categoryType, 
-              transactiondate, 
+              transaction_id,  
+              transaction_date, 
               amount, 
-              transactiontype, 
-              transactiondescription 
+              transaction_type, 
+              merchant_name
           FROM transactions
       `);
       res.json(result.rows);
@@ -202,15 +200,6 @@ app.get("/budget", (req, res) => {
   res.sendFile(__dirname + "/public/dashboard/budget.html");
 });
 
-app.get("/transactions", (req, res) => {
-  const { token } = req.cookies;
-  if (!token || !tokenStorage[token]) {
-    // Redirect to index.html if not logged in
-    return res.redirect("/");
-  }
-  // Serve the budget page if the user is authorized
-  res.sendFile(__dirname + "/public/dashboard/transactions.html");
-});
 
 async function fetchTransactions() {
   // API URL
@@ -252,39 +241,27 @@ async function fetchTransactions() {
     // Insert transactions into the database
     for (const transaction of transactions) {
       const {
-        transaction_id,
-        account_id,
         amount,
         date,
-        name,
-        category,
         merchant_name,
-      } = {
-        ...transaction,
-        category: transaction.category ? transaction.category.join(", ") : null,
-      };
+      } = transaction;
 
       try {
         const query = `
-          INSERT INTO transactions (transaction_id, account_id, amount, date, name, category, merchant_name)
-          VALUES ($1, $2, $3, $4, $5, $6, $7)
+          INSERT INTO transactions (category_id, account_id, amount, transaction_date, merchant_name)
+          VALUES (4, 1, $1, $2, $3)
           ON CONFLICT (transaction_id) DO NOTHING
         `;
-
         await pool.query(query, [
-          transaction_id,
-          account_id,
           amount,
           date,
-          name,
-          category,
           merchant_name,
         ]);
 
-        console.log(`Inserted transaction: ${transaction_id}`);
+        //console.log(`Inserted transaction: ${transaction_id}`);
       } catch (dbError) {
         console.error(
-          `Failed to insert transaction ${transaction_id}:`,
+          //`Failed to insert transaction ${transaction_id}:`,
           dbError
         );
       }
@@ -295,7 +272,7 @@ async function fetchTransactions() {
 }
 
 // Example usage
-// fetchTransactions("d7f1b8b9-0006-4135-91c0-b5532045a314", 0, 10, "2024-01-01", "2024-11-18");
+fetchTransactions("d7f1b8b9-0006-4135-91c0-b5532045a314", 0, 10, "2024-01-01", "2024-11-18");
 
 app.get("/accounts", (req, res) => {
   const { token } = req.cookies;
