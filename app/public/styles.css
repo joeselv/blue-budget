@@ -753,3 +753,19 @@ input[type="text"], textarea {
 .edit-category-btn:active {
     transform: scale(0.98);
 }
+
+.amount-container {
+    position: relative;
+    padding-bottom: 50px;
+}
+
+.edit-amount-btn {
+    position: absolute;
+    bottom: 0px;
+    left: 40%;
+    background-color: transparent;
+    cursor: pointer;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}

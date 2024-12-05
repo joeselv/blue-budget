@@ -22,11 +22,11 @@
   "dependencies": {
     "argon2": "^0.30.3",
     "cookie-parser": "^1.4.6",
+    "env-cmd": "^10.1.0",
     "express": "^4.21.1",
     "express-session": "^1.18.1",
     "pg": "^8.11.1",
-    "plaid": "^29.0.0",
-    "env-cmd": "^10.1.0"
+    "plaid": "^29.0.0"
   },
   "devDependencies": {
     "@flydotio/dockerfile": "^0.5.9"

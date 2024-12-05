@@ -62,7 +62,14 @@
                         <img src="../../resources/moneybagicon.svg" alt="Money Bag Icon">
                     </div>
                     <div class="title">Ready to Assign</div>
-                    <div class="amount">$6,000</div>
+                    <div class="amount-container">
+                        <span id="ready-to-assign-amount" class="amount">$0.00</span>
+                        <input type="number" id="edit-ready-to-assign" class="edit-input" style="display: none;" value="6000">
+                        <button id="edit-amount-btn" class="edit-category-btn edit-amount-btn">
+                            <span>Edit</span>
+                        </button>
+                        <button id="save-amount-btn" class="save-btn" style="display: none;">Save</button>
+                    </div>
                 </div>
         
                     <div class="budget-table-container">
@@ -146,6 +153,18 @@
                     <button id="edit-category-cancel">Cancel</button>
                     <button id="edit-category-delete" class="delete-btn">Delete</button>
                     <button id="edit-category-confirm">Save</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="popup-overlay" id="edit-ready-to-assign-popup">
+            <div class="popup-content">
+                <h2>Edit Amount</h2>
+                <label for="popup-amount-input">Amount:</label>
+                <input type="number" id="popup-amount-input" value="6000">
+                <div class="popup-buttons">
+                    <button id="cancel-btn">Cancel</button>
+                    <button id="save-btn">Save</button>
                 </div>
             </div>
         </div>
