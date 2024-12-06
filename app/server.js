@@ -314,10 +314,9 @@ app.get('/categories', async (req, res) => {
   
   try {
     const result = await pool.query(
-      `SELECT c.category_id, c.category_name, b.amount, b.start_date, b.end_date 
-       FROM categories c 
-       LEFT JOIN budgets b ON c.category_id = b.category_id
-       WHERE c.user_id = $1 AND b.budget_id = $2;`,
+      `SELECT *
+        FROM categories c
+        WHERE c.user_id = $1 AND c.budget_id = $2;`,
       [userID, budgetID]
     );
     res.json(result.rows);
@@ -353,8 +352,80 @@ app.post('/categories', async (req, res) => {
 
 app.delete('/categories/:id', async (req, res) => {
   const { id } = req.params;
-  await pool.query(`DELETE FROM categories WHERE categoryID = $1;`, [id]);
+  await pool.query(`DELETE FROM categories WHERE categoryID = $1 and userID = $2;`, [id]);
   res.sendStatus(204);
+});
+
+app.post('/budgets', async (req, res) => {
+  const { userID, amount, startDate, endDate } = req.body;
+
+  if (!userID || !startDate || !endDate || !amount) {
+    return res.status(400).send({ error: 'userID, startDate, and endDate are required.' });
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO budgets (user_id, amount, start_date, end_date) 
+       VALUES ($1, $2, $3, $4) 
+       RETURNING budget_id;`,
+      [userID, amount, startDate, endDate]
+    );
+
+    const budgetID = result.rows[0].budgetID;
+
+    res.status(201).send({ budgetID });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: 'An error occurred while creating the budget.' });
+  }
+});
+
+app.post('/budgets/update', async (req, res) => {
+  const { budgetID, amount } = req.body;
+
+  if (!budgetID || amount === undefined) {
+    return res.status(400).send({ error: 'budgetID and amount are required.' });
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE budgets 
+       SET amount = $2 
+       WHERE budget_id = $1 
+       RETURNING budget_id;`,
+      [budgetID, amount]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).send({ error: 'Budget not found.' });
+    }
+
+    res.status(200).send({ budgetID: result.rows[0].budget_id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: 'An error occurred while updating the budget.' });
+  }
+});
+
+app.get('/budgets', async (req, res) => {
+  const { userID } = req.query;
+
+  if (!userID) {
+    return res.status(400).send({ error: 'userID is required.' });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT * 
+       FROM budgets 
+       WHERE user_id = $1;`,
+      [userID]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: 'An error occurred while fetching budgets.' });
+  }
 });
 
 app.get('/accounts/:userID', async (req, res) => {
