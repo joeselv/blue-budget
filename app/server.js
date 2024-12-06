@@ -8,25 +8,19 @@ const path = require('path');
 const env = require("../config/env.json"); 
 const plaidRoutes = require("./routes/plaidRoutes");
 const fetch = require('node-fetch');
+const pool = require('./db'); // Import the centralized pool
+
 
 const port = 3000;
 let host;
 let config;
 // fly.io sets NODE_ENV to production automatically, otherwise it's unset when running locally
+
 if (process.env.NODE_ENV == "production") {
     host = "0.0.0.0";
-    config = { connectionString: process.env.DATABASE_URL };
+
 } else {
   host = "localhost";
-  // Use the values from env.json for localhost configuration
-  config = {
-      user: env.user,
-      host: env.host,
-      database: env.database,
-      password: env.password,
-      port: env.port,
-      ssl: env.ssl
-  };
 }
 
 const app = express();
@@ -37,7 +31,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cookieParser());
 app.use('/api/plaid', plaidRoutes);
-const pool = new Pool(config);
+// const pool = new Pool(config);
 
 app.use(session({
   secret: 'your_secret_key', // change this
