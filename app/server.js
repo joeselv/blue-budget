@@ -67,10 +67,6 @@ app.get("/api/transactions", async (req, res) => {
               transaction_id,  
               transaction_date, 
               amount, 
-              date, 
-              name, 
-              category, 
-              merchant_name
               transaction_type, 
               merchant_name
           FROM transactions
@@ -82,6 +78,14 @@ app.get("/api/transactions", async (req, res) => {
   }
 });
 
+//send html file
+app.get("/transactions", (req, res) => {
+  const { token } = req.cookies;
+  if (!token || !tokenStorage[token]) {
+      return res.redirect("/");
+  }
+  res.sendFile(path.join(__dirname, "public", "dashboard", "transactions.html"));
+});
 
 /* Generates a random 32-byte token */
 function makeToken() {
@@ -231,8 +235,17 @@ async function fetchTransactions() {
 
     // Parse and log the response data
     const data = await response.json();
-    console.log("Transactions Response:", data);
+    //console.log("Transactions Response:", data);
     const transactions = data.transactions;
+
+    //clear all previous transactions that were pulled
+    try {
+      await pool.query("DELETE FROM transactions");
+      //console.log("Transactions table cleared.");
+    } catch (clearError) {
+      console.error("Failed to clear transactions table:", clearError);
+      return; // Stop further execution if clearing the table fails
+    }
 
     // Insert transactions into the database
     for (const transaction of transactions) {
@@ -268,7 +281,6 @@ async function fetchTransactions() {
 }
 
 // Example usage
-fetchTransactions("d7f1b8b9-0006-4135-91c0-b5532045a314", 0, 10, "2024-01-01", "2024-11-18");
 fetchTransactions("d7f1b8b9-0006-4135-91c0-b5532045a314", 0, 10, "2024-01-01", "2024-11-18");
 
 app.get("/accounts", (req, res) => {
@@ -353,6 +365,57 @@ app.delete('/categories/:id', async (req, res) => {
   await pool.query(`DELETE FROM categories WHERE categoryID = $1;`, [id]);
   res.sendStatus(204);
 });
+
+// Route to update email
+app.post('/api/update-email', async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    // Check if the email already exists in the database
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (result.rows.length > 0) {
+      return res.status(400).json({ message: 'Email already in use' });
+    }
+
+    // Update the user's email
+    const updateResult = await pool.query('UPDATE users SET email = $1 WHERE user_id = 1', [email]);
+    if (updateResult.rowCount > 0) {
+      return res.status(200).json({ message: 'Email updated successfully' });
+    } else {
+      return res.status(400).json({ message: 'No changes made' });
+    }
+  } catch (err) {
+    console.error('Database error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update password endpoint
+app.post('/api/update-password', async (req, res) => {
+    const { password } = req.body;
+
+    if (!password) {
+        return res.status(400).json({ message: 'Password is required.' });
+    }
+
+    try {
+        // Hash the password using argon2
+        const hashedPassword = await argon2.hash(password);
+
+        // Update the password in the database
+        const result = await pool.query('UPDATE users SET userpassword = $1 WHERE user_id = 1', [hashedPassword]);
+
+        if (result.rowCount > 0) {
+            return res.status(200).json({ message: 'Password updated successfully.' });
+        } else {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+    } catch (err) {
+        console.error('Error updating password:', err);
+        res.status(500).json({ message: 'An error occurred. Please try again.' });
+    }
+});
+
 
 app.listen(port, host, () => {
   console.log(`Server running at http://${host}:${port}`);
