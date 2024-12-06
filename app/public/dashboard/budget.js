@@ -104,7 +104,11 @@ function openEditPopup(row) {
     };
 }
 
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", async function() {
+    const userID = '1';
+    let budgetID = '3';
+    const categories = await loadCategories(userID, budgetID);
+    populateCategoryTable(categories);
     const rows = document.querySelectorAll('.budget-table tbody tr:not(.add-category)');
     rows.forEach(row => {
         applyRowStyles(row);
@@ -157,25 +161,52 @@ document.addEventListener("DOMContentLoaded", function() {
         goalAmountInput.value = '';
     });
 
+    await fetchAndDisplayBudget();
+
     addButton.addEventListener('click', async () => {
         const newCategory = categoryNameInput.value.trim();
         const goalAmount = parseFloat(goalAmountInput.value.trim());
         const assignedAmount = parseFloat(document.getElementById('assigned-amount').value.trim());
         const userID = '1';
-        const budgetID = '1';
     
         if (!selectedIcon) {
             alert("Please select an icon for the category.");
             return;
         }
-    
-        if (!newCategory || isNaN(goalAmount) || goalAmount <= 0 || !userID || !budgetID) {
+
+        if (!newCategory || isNaN(goalAmount) || goalAmount <= 0 || !userID) {
             alert("Please fill all required fields correctly.");
             return;
         }
-    
+
         try {
-            // Send data to the server
+            const budgetResponse = await fetch(`/budgets?userID=${userID}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!budgetResponse.ok) {
+                throw new Error(`Error: ${budgetResponse.statusText}`);
+            }
+
+            const budgetData = await budgetResponse.json();
+            const currentDate = new Date();
+
+            const budget = budgetData.find(budget => {
+                const startDate = new Date(budget.start_date);
+                const endDate = new Date(budget.end_date);
+                return currentDate >= startDate && currentDate <= endDate;
+            });
+
+            if (budget) {
+                var budgetID = budget.budget_id;
+            } else {
+                alert("No budget found for the current date range.");
+                return;
+            }
+
             const response = await fetch('/categories', {
                 method: 'POST',
                 headers: {
@@ -194,9 +225,7 @@ document.addEventListener("DOMContentLoaded", function() {
             if (!response.ok) {
                 throw new Error(`Error: ${response.statusText}`);
             }
-    
-            const { categoryID } = await response.json();
-    
+        
             // Add the new category row to the table
             const newRow = document.createElement('tr');
             newRow.innerHTML = ` 
@@ -219,7 +248,7 @@ document.addEventListener("DOMContentLoaded", function() {
             selectedIcon = null;    
         } catch (error) {
             console.error("Error adding category:", error);
-            alert("Failed to add category. Please try again later.");
+            alert("Failed to add category. Please ensure you have a budget set and that it is not a dupe.");
         }
     });
 
@@ -236,6 +265,8 @@ document.addEventListener("DOMContentLoaded", function() {
             alert('Please enter a valid amount.');
             return;
         }
+
+        insertOrUpdateBudget(1, newAmount);
 
         document.getElementById('ready-to-assign-amount').textContent = `$${newAmount.toFixed(2)}`;        
         document.getElementById('edit-ready-to-assign-popup').classList.remove('show');
@@ -265,4 +296,156 @@ function updateProgressBar(row) {
     } else {
         progressBar.style.backgroundColor = 'red';
     }
+}
+
+async function insertOrUpdateBudget(userID, newAmount) {
+    const currentDate = new Date();
+
+    try {
+        const response = await fetch(`/budgets?userID=${userID}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Error:', errorData.error);
+            return;
+        }
+
+        const data = await response.json();
+        const budget = data.find(budget => {
+            const startDate = new Date(budget.start_date);
+            const endDate = new Date(budget.end_date);
+            return currentDate >= startDate && currentDate <= endDate;
+        });
+
+        if (budget) {
+            console.log('Current date is within the range of an existing budget.');
+            const updateResponse = await fetch('/budgets/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ budgetID: budget.budget_id, amount: newAmount }),
+            });
+
+            if (updateResponse.ok) {
+                const updateData = await updateResponse.json();
+                console.log('Budget updated successfully:', updateData.budgetID);
+            } else {
+                const updateErrorData = await updateResponse.json();
+                console.error('Error updating budget:', updateErrorData.error);
+            }
+        } else {
+            const startDate = currentDate.toISOString().split('T')[0];
+            const endDate = new Date(currentDate.setMonth(currentDate.getMonth() + 1)).toISOString().split('T')[0];
+
+            const createResponse = await fetch('/budgets', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userID, amount: newAmount, startDate, endDate }),
+            });
+
+            if (createResponse.ok) {
+                const createData = await createResponse.json();
+                console.log('New budget created successfully:', createData.budgetID);
+            } else {
+                const createErrorData = await createResponse.json();
+                console.error('Error creating new budget:', createErrorData.error);
+            }
+        }
+    } catch (error) {
+        console.error('An error occurred while fetching budgets:', error);
+    }
+}
+
+async function fetchAndDisplayBudget() {
+    const userID = 1;
+    const currentDate = new Date();
+
+    try {
+        const response = await fetch(`/budgets?userID=${userID}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+
+            const budget = data.find(budget => {
+                const startDate = new Date(budget.start_date);
+                const endDate = new Date(budget.end_date);
+                return currentDate >= startDate && currentDate <= endDate;
+            });
+
+            if (budget) {
+                document.getElementById('ready-to-assign-amount').textContent = `$${parseFloat(budget.amount).toFixed(2)}`;
+            } else {
+                console.log('No existing budget found for the current date range.');
+                document.getElementById('budget-amount-display').textContent = 'No budget set.';
+            }
+        } else {
+            const errorData = await response.json();
+            console.error('Error:', errorData.error);
+        }
+    } catch (error) {
+        console.error('An error occurred while fetching budgets:', error);
+    }
+}
+
+async function loadCategories(userID, budgetID) {
+    try {
+        const response = await fetch(`/categories?userID=${userID}&budgetID=${budgetID}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            return data;  // Return the list of categories
+        } else {
+            const errorData = await response.json();
+            console.error('Error:', errorData.error);
+            return [];
+        }
+    } catch (error) {
+        console.error('An error occurred while fetching categories:', error);
+        return [];
+    }
+}
+
+function populateCategoryTable(categories) {
+    const tableBody = document.querySelector('.budget-table tbody');
+
+    categories.forEach(category => {
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td>
+                <img src="/resources/categoryIcons/${category.icon_name}" alt="${category.icon_name}" class="material-symbols-rounded"> ${category.category_name}
+            </td>
+            <td>$${parseFloat(category.assigned_amount).toFixed(2)}</td>
+            <td>$${parseFloat(category.activity_amount).toFixed(2)}</td>
+            <td class="activity neutral">$${parseFloat(category.activity_amount).toFixed(2)}</td>
+            <td>$${parseFloat(category.goal_amount).toFixed(2)}</td>
+        `;
+        tableBody.appendChild(newRow);
+    });
+
+    const addCategoryRow = document.createElement('tr');
+    addCategoryRow.classList.add('add-category');
+    addCategoryRow.innerHTML = `
+        <td colspan="6" style="text-align: center; cursor: pointer; color: #2d60ff;">
+            <span class="material-symbols-rounded">add_circle</span> Add New Category
+        </td>
+    `;
+    tableBody.appendChild(addCategoryRow);
 }

@@ -519,22 +519,30 @@ body {
     transition: background-color 0.3s ease;
 }
 
-#add-category-confirm {
+.confirm-btn {
     background-color: #2d60ff;
     color: white;
 }
 
-#add-category-confirm:hover {
+.confirm-btn:hover {
     background-color: #1e49d8;
 }
 
-#add-category-cancel {
+.standard-btn {
     background-color: #f0f0f0;
     color: #333;
 }
 
-#add-category-cancel:hover {
+.standard-btn:hover {
     background-color: #d0d0d0;
+}
+.delete-btn {
+    background-color: red;
+    color: white;
+}
+
+.delete-btn:hover {
+    background-color: darkred;
 }
 
 .icon-selector {
