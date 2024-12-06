@@ -249,7 +249,7 @@ async function fetchTransactions() {
       try {
         const query = `
           INSERT INTO transactions (category_id, account_id, amount, transaction_date, merchant_name)
-          VALUES (4, 1, $1, $2, $3)
+          VALUES (1, 1, $1, $2, $3)
           ON CONFLICT (transaction_id) DO NOTHING
         `;
         await pool.query(query, [
@@ -355,6 +355,46 @@ app.delete('/categories/:id', async (req, res) => {
   const { id } = req.params;
   await pool.query(`DELETE FROM categories WHERE categoryID = $1;`, [id]);
   res.sendStatus(204);
+});
+
+app.get('/accounts/:userID', async (req, res) => {
+  const { userID } = req.params;
+  try {
+    const result = await pool.query('SELECT * FROM accounts WHERE user_id = $1', [userID]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: 'An error occurred while fetching accounts.' });
+  }
+});
+
+app.post('/accounts', async (req, res) => {
+  const { userID, accountName, accountType, balance } = req.body;
+  if (!userID || !accountName || !accountType) {
+    return res.status(400).send({ error: 'userID, accountName, and accountType are required.' });
+  }
+  console.log(req.body);
+  try {
+    const result = await pool.query(
+      'INSERT INTO accounts (user_id, account_name, account_type, balance) VALUES ($1, $2, $3, $4) RETURNING account_id',
+      [userID, accountName, accountType, balance || 0]
+    );
+    res.status(201).send({ accountID: result.rows[0].account_id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: 'An error occurred while creating the account.' });
+  }
+});
+
+app.delete('/accounts/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query('DELETE FROM accounts WHERE account_id = $1', [id]);
+    res.sendStatus(204);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: 'An error occurred while deleting the account.' });
+  }
 });
 
 app.listen(port, host, () => {
