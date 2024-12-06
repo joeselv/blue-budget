@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions Table</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        th {
+            background-color: #f4f4f4;
+            text-align: left;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+<body>
+    <h1>Transactions</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Transaction ID</th>
+                <th>Account Type</th>
+                <th>Category Type</th>
+                <th>Transaction Date</th>
+                <th>Amount</th>
+                <th>Transaction Type</th>
+                <th>Transaction Description</th>
+            </tr>
+        </thead>
+        <tbody id="transactionsTableBody">
+        </tbody>
+    </table>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const tableBody = document.getElementById('transactionsTableBody');
+
+            try {
+                const response = await fetch('/transactions');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const transactions = await response.json();
+                while (tableBody.firstChild) {
+                    tableBody.removeChild(tableBody.firstChild);
+                }
+                transactions.forEach((transaction) => {
+                    const row = document.createElement('tr');
+
+                    const transactionIdCell = document.createElement('td');
+                    transactionIdCell.textContent = transaction.transactionid;
+                    row.appendChild(transactionIdCell);
+
+                    const accountTypeCell = document.createElement('td');
+                    accountTypeCell.textContent = transaction.accounttype;
+                    row.appendChild(accountTypeCell);
+
+                    const categoryTypeCell = document.createElement('td');
+                    categoryTypeCell.textContent = transaction.categorytype;
+                    row.appendChild(categoryTypeCell);
+
+                    const transactionDateCell = document.createElement('td');
+                    const date = new Date(transaction.transactiondate);
+                    transactionDateCell.textContent = new Intl.DateTimeFormat('en-CA').format(date);
+                    row.appendChild(transactionDateCell);
+
+                    const amountCell = document.createElement('td');
+                    amountCell.textContent = transaction.amount;
+                    row.appendChild(amountCell);
+
+                    const transactionTypeCell = document.createElement('td');
+                    transactionTypeCell.textContent = transaction.transactiontype;
+                    row.appendChild(transactionTypeCell);
+
+                    const transactionDescriptionCell = document.createElement('td');
+                    transactionDescriptionCell.textContent = transaction.transactiondescription;
+                    row.appendChild(transactionDescriptionCell);
+
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error fetching transactions:', error);
+
+                while (tableBody.firstChild) {
+                    tableBody.removeChild(tableBody.firstChild);
+                }
+
+                const errorRow = document.createElement('tr');
+                const errorCell = document.createElement('td');
+                errorCell.setAttribute('colspan', '7'); 
+                errorCell.textContent = 'Error loading transactions data';
+                errorRow.appendChild(errorCell);
+                tableBody.appendChild(errorRow);
+            }
+
+        });
+    </script>
+</body>
+</html>
+
