@@ -246,8 +246,17 @@ async function fetchTransactions() {
 
     // Parse and log the response data
     const data = await response.json();
-    console.log("Transactions Response:", data);
+    //console.log("Transactions Response:", data);
     const transactions = data.transactions;
+
+    //clear all previous transactions that were pulled
+    try {
+      await pool.query("DELETE FROM transactions");
+      //console.log("Transactions table cleared.");
+    } catch (clearError) {
+      console.error("Failed to clear transactions table:", clearError);
+      return; // Stop further execution if clearing the table fails
+    }
 
     // Insert transactions into the database
     for (const transaction of transactions) {
@@ -384,8 +393,129 @@ app.post('/api/update-category', async (req, res) => {
 
 app.delete('/categories/:id', async (req, res) => {
   const { id } = req.params;
-  await pool.query(`DELETE FROM categories WHERE categoryID = $1;`, [id]);
+  await pool.query(`DELETE FROM categories WHERE categoryID = $1 and userID = $2;`, [id]);
   res.sendStatus(204);
+});
+
+app.post('/budgets', async (req, res) => {
+  const { userID, amount, startDate, endDate } = req.body;
+
+  if (!userID || !startDate || !endDate || !amount) {
+    return res.status(400).send({ error: 'userID, startDate, and endDate are required.' });
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO budgets (user_id, amount, start_date, end_date) 
+       VALUES ($1, $2, $3, $4) 
+       RETURNING budget_id;`,
+      [userID, amount, startDate, endDate]
+    );
+
+    const budgetID = result.rows[0].budgetID;
+
+    res.status(201).send({ budgetID });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: 'An error occurred while creating the budget.' });
+  }
+});
+
+app.post('/budgets/update', async (req, res) => {
+  const { budgetID, amount } = req.body;
+
+  if (!budgetID || amount === undefined) {
+    return res.status(400).send({ error: 'budgetID and amount are required.' });
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE budgets 
+       SET amount = $2 
+       WHERE budget_id = $1 
+       RETURNING budget_id;`,
+      [budgetID, amount]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).send({ error: 'Budget not found.' });
+    }
+
+    res.status(200).send({ budgetID: result.rows[0].budget_id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: 'An error occurred while updating the budget.' });
+  }
+});
+
+app.get('/budgets', async (req, res) => {
+  const { userID } = req.query;
+
+  if (!userID) {
+    return res.status(400).send({ error: 'userID is required.' });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT * 
+       FROM budgets 
+       WHERE user_id = $1;`,
+      [userID]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: 'An error occurred while fetching budgets.' });
+  }
+});
+
+app.post('/api/update-email', async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    // Check if the email already exists in the database
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (result.rows.length > 0) {
+      return res.status(400).json({ message: 'Email already in use' });
+    }
+
+    // Update the user's email
+    const updateResult = await pool.query('UPDATE users SET email = $1 WHERE user_id = 1', [email]);
+    if (updateResult.rowCount > 0) {
+      return res.status(200).json({ message: 'Email updated successfully' });
+    } else {
+      return res.status(400).json({ message: 'No changes made' });
+    }
+  } catch (err) {
+    console.error('Database error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update password endpoint
+app.post('/api/update-password', async (req, res) => {
+    const { password } = req.body;
+
+    if (!password) {
+        return res.status(400).json({ message: 'Password is required.' });
+    }
+
+    try {
+        // Hash the password using argon2
+        const hashedPassword = await argon2.hash(password);
+
+        // Update the password in the database
+        const result = await pool.query('UPDATE users SET userpassword = $1 WHERE user_id = 1', [hashedPassword]);
+
+        if (result.rowCount > 0) {
+            return res.status(200).json({ message: 'Password updated successfully.' });
+        } else {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+    } catch (err) {
+        console.error('Error updating password:', err);
+        res.status(500).json({ message: 'An error occurred. Please try again.' });
+    }
 });
 
 app.listen(port, host, () => {
