@@ -1,5 +1,5 @@
 const menuItems = document.querySelectorAll('.menu-item');
-        
+
 menuItems.forEach(item => {
     item.addEventListener('click', () => {
         menuItems.forEach(i => i.classList.remove('selected'));
@@ -82,7 +82,7 @@ async function saveTransaction() {
     const transactionType = document.getElementById('transaction-type').value;
     const transactionDescription = document.getElementById('transaction-description').value;
     const categoryId = document.getElementById('transaction-category').value;
-    const accountId = 4; // Hardcoded value
+    const accountId = 1; // Hardcoded value
 
     if (!merchantName || !amount || !transactionDate || !transactionType || !categoryId) {
         alert('Please fill out all required fields.');

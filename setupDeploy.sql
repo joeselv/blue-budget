@@ -7,9 +7,7 @@ DROP TABLE budgets CASCADE;
 DROP TYPE IF EXISTS accountType;
 DROP TYPE IF EXISTS transactionType;
 
-CREATE TYPE accountType AS ENUM ('Checking', 'Savings', 'Credit', 'Investment');
 CREATE TYPE transactionType AS ENUM ('Income', 'Expense');
-
 
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
@@ -29,8 +27,8 @@ CREATE TABLE budgets (
 CREATE TABLE accounts (
     account_id SERIAL PRIMARY KEY,
     user_id INT,
-    account_name VARCHAR(20),
-    account_type accountType,
+    account_name VARCHAR(255),
+    account_type VARCHAR(255),
     balance DECIMAL(15, 2) DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
@@ -38,7 +36,7 @@ CREATE TABLE accounts (
 CREATE TABLE categories (
     category_id SERIAL PRIMARY KEY,
     category_name VARCHAR(20) NOT NULL,
-    icon_name VARCHAR(20),
+    icon_name VARCHAR(255),
     user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
     budget_id INT REFERENCES budgets(budget_id) ON DELETE CASCADE,
     goal_amount DECIMAL(15, 2) NOT NULL,
@@ -56,6 +54,7 @@ CREATE TABLE transactions (
     amount DECIMAL(15, 2) NOT NULL,
     transaction_type transactionType,
     transaction_description VARCHAR(100),
+    insert_method VARCHAR(10) DEFAULT 'Automatic' CHECK (insert_method IN ('Manual', 'Automatic')),
     FOREIGN KEY (account_id) REFERENCES accounts(account_id),
     FOREIGN KEY (category_id) REFERENCES categories(category_id)
 );

@@ -30,7 +30,7 @@ CREATE TABLE accounts (
 CREATE TABLE categories (
     category_id SERIAL PRIMARY KEY,
     category_name VARCHAR(20) NOT NULL,
-    icon_name VARCHAR(20),
+    icon_name VARCHAR(255),
     user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
     budget_id INT REFERENCES budgets(budget_id) ON DELETE CASCADE,
     goal_amount DECIMAL(15, 2) NOT NULL,

@@ -224,7 +224,7 @@ async function fetchTransactions() {
     start_date: "2024-01-01",
     end_date: "2024-11-18",
     options: {
-      count: 3,
+      count: 100,
       offset: 0,
     },
   };
@@ -268,7 +268,7 @@ async function fetchTransactions() {
       try {
         const query = `
           INSERT INTO transactions (account_id, amount, transaction_date, merchant_name)
-          VALUES (4, $1, $2, $3)
+          VALUES (1, $1, $2, $3)
           ON CONFLICT (transaction_id) DO NOTHING
         `;
         await pool.query(query, [
@@ -289,9 +289,6 @@ async function fetchTransactions() {
     console.error("Failed to fetch transactions:", error);
   }
 }
-
-// Example usage
-// fetchTransactions("d7f1b8b9-0006-4135-91c0-b5532045a314", 0, 10, "2024-01-01", "2024-11-18");
 
 app.get("/accounts", (req, res) => {
   const { token } = req.cookies;
@@ -591,6 +588,7 @@ app.post('/accounts', async (req, res) => {
       'INSERT INTO accounts (user_id, account_name, account_type, balance) VALUES ($1, $2, $3, $4) RETURNING account_id',
       [userID, accountName, accountType, balance || 0]
     );
+    fetchTransactions("d7f1b8b9-0006-4135-91c0-b5532045a314", 0, 10, "2024-01-01", "2024-11-18");
     res.status(201).send({ accountID: result.rows[0].account_id });
   } catch (err) {
     console.error(err);
