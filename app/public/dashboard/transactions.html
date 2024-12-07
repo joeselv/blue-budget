@@ -47,49 +47,49 @@
                 <table class="transactions-table">
                     <thead>
                         <tr>
-                            <th data-column="transactionid" data-type="number">
+                            <th class="sortable" data-column="transaction_id" data-type="number">
                                 Transaction ID
                                 <span class="arrows">
                                     <span class="arrow asc-arrow">▲</span>
                                     <span class="arrow desc-arrow">▼</span>
                                 </span>
                             </th>
-                            <th data-column="accounttype" data-type="text">
+                            <th class="sortable" data-column="account_type" data-type="text">
                                 Account Type
                                 <span class="arrows">
                                     <span class="arrow asc-arrow">▲</span>
                                     <span class="arrow desc-arrow">▼</span>
                                 </span>
                             </th>
-                            <th data-column="categorytype" data-type="text">
-                                Category Type
+                            <th class="sortable" data-column="category_name" data-type="text">
+                                Category
                                 <span class="arrows">
                                     <span class="arrow asc-arrow">▲</span>
                                     <span class="arrow desc-arrow">▼</span>
                                 </span>
                             </th>
-                            <th data-column="transactiondate" data-type="date">
+                            <th class="sortable" data-column="transaction_date" data-type="date">
                                 Transaction Date
                                 <span class="arrows">
                                     <span class="arrow asc-arrow">▲</span>
                                     <span class="arrow desc-arrow">▼</span>
                                 </span>
                             </th>
-                            <th data-column="amount" data-type="number">
+                            <th class="sortable" data-column="amount" data-type="number">
                                 Amount
                                 <span class="arrows">
                                     <span class="arrow asc-arrow">▲</span>
                                     <span class="arrow desc-arrow">▼</span>
                                 </span>
                             </th>
-                            <th data-column="transactiontype" data-type="text">
+                            <th class="sortable" data-column="transaction_type" data-type="text">
                                 Transaction Type
                                 <span class="arrows">
                                     <span class="arrow asc-arrow">▲</span>
                                     <span class="arrow desc-arrow">▼</span>
                                 </span>
                             </th>
-                            <th data-column="transactiondescription" data-type="text">
+                            <th class="sortable" data-column="merchant_name" data-type="text">
                                 Transaction Description
                                 <span class="arrows">
                                     <span class="arrow asc-arrow">▲</span>
@@ -99,6 +99,7 @@
                         </tr>
                     </thead>
                     <tbody id="transactionsTableBody">
+                        <!-- Table rows will be dynamically generated here -->
                     </tbody>
                 </table>
             </div>
@@ -137,257 +138,6 @@
             </div>
         </div>
     </div>
-
-    <script>
-        const menuItems = document.querySelectorAll('.menu-item');
-        
-        menuItems.forEach(item => {
-            item.addEventListener('click', () => {
-                menuItems.forEach(i => i.classList.remove('selected'));
-                item.classList.add('selected');
-        
-                const pageTitle = document.querySelector('.page-title');
-                const pageName = item.querySelector('span:last-child').textContent;
-                pageTitle.textContent = pageName;
-            });
-        });
-
-        // Logout button event listener
-        document.getElementById('logout-btn').addEventListener('click', async () => {
-            try {
-                const response = await fetch('/logout', { method: 'POST' });
-                if (response.ok) {
-                    window.location.href = '/'; 
-                } else {
-                    alert("Failed to log out. Please try again.");
-                }
-            } catch (error) {
-                console.error("Logout error:", error);
-                alert("An error occurred while logging out.");
-            }
-        });
-
-        function openPopup() {
-            const overlay = document.getElementById('popup-overlay');
-            overlay.style.visibility = 'visible';
-            overlay.style.opacity = '1';
-
-            // Fetch categories when the popup opens
-            fetchCategories();
-        }
-
-        async function fetchCategories() {
-            const categorySelect = document.getElementById('transaction-category');
-            try {
-                const response = await fetch('/categories?userID=1&budgetID=1');
-                if (!response.ok) {
-                    throw new Error('Failed to fetch categories');
-                }
-                const categories = await response.json();
-                categorySelect.innerHTML = ''; // Clear existing options
-                categories.forEach(category => {
-                    const option = document.createElement('option');
-                    option.value = category.category_id;
-                    option.textContent = category.category_name;
-
-                    // Add a custom data attribute for the icon URL
-                    option.setAttribute(
-                        'data-icon',
-                        `/resources/categoryIcons/${category.icon_name}`
-                    );
-
-                    categorySelect.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Error fetching categories:', error);
-                categorySelect.innerHTML = '<option value="">Error loading categories</option>';
-            }
-        }
-
-        function closePopup() {
-            const overlay = document.getElementById('popup-overlay');
-            overlay.style.visibility = 'hidden';
-            overlay.style.opacity = '0';
-            document.getElementById('transaction-category').value = '';
-            document.getElementById('transaction-description').value = '';
-            document.getElementById('transaction-type').value = '';
-            document.getElementById('transaction-date').value = '';
-            document.getElementById('transaction-amount').value = '';
-            document.getElementById('transaction-name').value = '';
-        }
-
-        async function saveTransaction() {
-            const merchantName = document.getElementById('transaction-name').value;
-            const amount = parseFloat(document.getElementById('transaction-amount').value);
-            const transactionDate = document.getElementById('transaction-date').value;
-            const transactionType = document.getElementById('transaction-type').value;
-            const transactionDescription = document.getElementById('transaction-description').value;
-            const categoryId = document.getElementById('transaction-category').value;
-            const accountId = 1; // Hardcoded value
-
-            if (!merchantName || !amount || !transactionDate || !transactionType || !categoryId) {
-                alert('Please fill out all required fields.');
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/transactions', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        merchant_name: merchantName,
-                        amount,
-                        transaction_date: transactionDate,
-                        transaction_type: transactionType,
-                        transaction_description: transactionDescription,
-                        account_id: accountId,
-                        category_id: categoryId
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to save transaction');
-                }
-
-                alert('Transaction saved successfully!');
-                closePopup();
-                // Optionally, refresh the table or fetch updated transactions
-            } catch (error) {
-                console.error('Error saving transaction:', error);
-                alert('Error saving transaction.');
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            const tableBody = document.getElementById('transactionsTableBody');
-            const searchBar = document.getElementById('searchBar');
-            let transactions = [];
-
-            // Fetch data
-            try {
-                const response = await fetch('/api/transactions');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                transactions = await response.json();
-                renderTable(transactions);
-            } catch (error) {
-                console.error('Error fetching transactions:', error);
-                displayErrorRow('Error loading transactions data');
-            }
-
-            //Input data from database
-            function renderTable(data) {
-                while (tableBody.firstChild) {
-                    tableBody.removeChild(tableBody.firstChild);
-                }
-                data.forEach(transaction => {
-                    const row = document.createElement('tr');
-
-                    const transactionIdCell = document.createElement('td');
-                    transactionIdCell.textContent = transaction.transaction_id;
-                    row.appendChild(transactionIdCell);
-
-                    const accountTypeCell = document.createElement('td');
-                    //accountTypeCell.textContent = transaction.accounttype;
-                    row.appendChild(accountTypeCell);
-
-                    const categoryTypeCell = document.createElement('td');
-                    //categoryTypeCell.textContent = transaction.categorytype;
-                    row.appendChild(categoryTypeCell);
-
-                    const transactionDateCell = document.createElement('td');
-                    const date = new Date(transaction.transaction_date);
-                    transactionDateCell.textContent = new Intl.DateTimeFormat('en-CA').format(date);
-                    row.appendChild(transactionDateCell);
-
-                    const amountCell = document.createElement('td');
-                    amountCell.textContent = transaction.amount;
-                    row.appendChild(amountCell);
-
-                    const transactionTypeCell = document.createElement('td');
-                    //transactionTypeCell.textContent = transaction.transactiontype;
-                    row.appendChild(transactionTypeCell);
-
-                    const transactionDescriptionCell = document.createElement('td');
-                    transactionDescriptionCell.textContent = transaction.merchant_name;
-                    row.appendChild(transactionDescriptionCell);
-
-                    tableBody.appendChild(row);
-                });
-            }
-
-            //Error Rows
-            function displayErrorRow(message) {
-                while (tableBody.firstChild) {
-                    tableBody.removeChild(tableBody.firstChild);
-                }
-                const errorRow = document.createElement('tr');
-                const errorCell = document.createElement('td');
-                errorCell.setAttribute('colspan', '7');
-                errorCell.textContent = message;
-                errorRow.appendChild(errorCell);
-                tableBody.appendChild(errorRow);
-            }
-
-            document.querySelectorAll('th').forEach(header => {
-                header.addEventListener('click', () => {
-                    const column = header.dataset.column;
-                    const type = header.dataset.type;
-                    const ascending = !header.classList.contains('asc');
-
-                    // Reset headers
-                    document.querySelectorAll('th').forEach(th => th.classList.remove('asc', 'desc'));
-
-                    // Apply the correct arrow to the clicked header
-                    if (ascending) {
-                        header.classList.add('asc');
-                    } else {
-                        header.classList.add('desc');
-                    }
-
-                    // Sort data
-                    transactions.sort((a, b) => {
-                        let valA = a[column];
-                        let valB = b[column];
-
-                        if (type === 'number') {
-                            valA = parseFloat(valA) || 0;
-                            valB = parseFloat(valB) || 0;
-                        } else if (type === 'date') {
-                            valA = new Date(valA).getTime() || 0;
-                            valB = new Date(valB).getTime() || 0;
-                        } else {
-                            valA = String(valA).toLowerCase();
-                            valB = String(valB).toLowerCase();
-                        }
-
-                        if (ascending) {
-                            return valA > valB ? 1 : -1;
-                        } else {
-                            return valA < valB ? 1 : -1;
-                        }
-                    });
-
-                    renderTable(transactions);
-                });
-            });
-
-
-            // Search function
-            searchBar.addEventListener('input', () => {
-                const query = searchBar.value.toLowerCase();
-                const filteredTransactions = transactions.filter(transaction =>
-                    Object.values(transaction).some(value =>
-                        String(value).toLowerCase().includes(query)
-                    )
-                );
-                renderTable(filteredTransactions);
-            });
-        });
-
-
-
-    </script>
+    <script src="dashboard/transactions.js"></script>
 </body>
 </html>

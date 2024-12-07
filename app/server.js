@@ -56,20 +56,31 @@ pool.connect()
 
 //get transactions from API
 app.get("/api/transactions", async (req, res) => {
+  res.set('Cache-Control', 'no-store');
   const { token } = req.cookies;
   if (!token || !tokenStorage[token]) {
       return res.sendStatus(400); 
   }
-
   try {
       const result = await pool.query(`
           SELECT 
-              transaction_id,  
-              transaction_date, 
-              amount, 
-              transaction_type, 
-              merchant_name
-          FROM transactions
+            a.account_id,
+            a.account_type,
+            t.transaction_id,
+            t.merchant_name,
+            t.transaction_date,
+            t.amount,
+            c.category_name
+          FROM 
+            accounts AS a
+          JOIN 
+            transactions AS t
+          ON 
+             a.account_id = t.account_id
+          LEFT JOIN
+            categories as c
+          ON
+            t.category_id = c.category_id
       `);
       res.json(result.rows);
   } catch (err) {
@@ -256,8 +267,8 @@ async function fetchTransactions() {
 
       try {
         const query = `
-          INSERT INTO transactions (category_id, account_id, amount, transaction_date, merchant_name)
-          VALUES (1, 1, $1, $2, $3)
+          INSERT INTO transactions (account_id, amount, transaction_date, merchant_name)
+          VALUES (4, $1, $2, $3)
           ON CONFLICT (transaction_id) DO NOTHING
         `;
         await pool.query(query, [
@@ -266,7 +277,7 @@ async function fetchTransactions() {
           merchant_name,
         ]);
 
-        //console.log(`Inserted transaction: ${transaction_id}`);
+        // console.log(`Inserted transaction: ${transaction_id}`);
       } catch (dbError) {
         console.error(
           //`Failed to insert transaction ${transaction_id}:`,
@@ -280,7 +291,7 @@ async function fetchTransactions() {
 }
 
 // Example usage
-fetchTransactions("d7f1b8b9-0006-4135-91c0-b5532045a314", 0, 10, "2024-01-01", "2024-11-18");
+// fetchTransactions("d7f1b8b9-0006-4135-91c0-b5532045a314", 0, 10, "2024-01-01", "2024-11-18");
 
 app.get("/accounts", (req, res) => {
   const { token } = req.cookies;
@@ -355,6 +366,27 @@ app.post('/categories', async (req, res) => {
     } catch (err) {
     console.error(err);
     res.status(500).send({ error: 'An error occurred while creating the category.' });
+  }
+});
+
+app.post('/api/update-category', async (req, res) => {
+  const { transactionId, categoryId } = req.body;
+
+  if (!transactionId || !categoryId) {
+      return res.status(400).send({ error: 'transactionId and categoryId are required.' });
+  }
+
+  try {
+      await pool.query(
+          `UPDATE transactions
+           SET category_id = $1
+           WHERE transaction_id = $2;`,
+          [categoryId, transactionId]
+      );
+      res.status(200).send({ message: 'Category updated successfully.' });
+  } catch (err) {
+      console.error('Error updating category:', err);
+      res.status(500).send({ error: 'An error occurred while updating the category.' });
   }
 });
 

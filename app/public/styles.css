@@ -799,7 +799,81 @@ input[type="text"], textarea {
     align-items: center;
 }
 
-.save-btn {
+.negative {
+    color: green;
+}
+
+.positive {
+    color: red;
+}
+
+th.sortable {
+    cursor: pointer;
+}
+
+th.sortable:hover {
+    text-decoration: underline;
+}
+
+.arrows {
+    font-size: 0.8em;
+}
+
+.asc-arrow {
+    display: none;
+}
+
+.desc-arrow {
+    display: none;
+}
+
+th.asc .asc-arrow {
+    display: inline;
+}
+
+th.desc .desc-arrow {
+    display: inline;
+}
+
+/* Button styling for table actions */
+.table-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+.table-btn:hover {
+    background-color: #0056b3;
+}
+
+.table-btn .material-symbols-rounded {
+    font-size: 1rem;
+    margin-right: 0.3rem;
+}
+
+.table-btn.save {
+    background-color: #28a745;
+}
+
+.table-btn.save:hover {
+    background-color: #218838;
+}
+.category-cell {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+  .save-btn {
     background-color: #0056b3; /* Dark Blue */
     color: #fff;
     border: none;
