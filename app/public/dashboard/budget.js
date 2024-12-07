@@ -250,7 +250,7 @@ function updateProgressBar(row) {
     const assigned = parseFloat(row.children[2].textContent.replace('$', '').trim()) || 0;
     const goal = parseFloat(row.children[5].textContent.replace('$', '').trim()) || 0;
 
-    console.log(assigned, goal);
+    console.log("Assigned:", assigned, "Goal:", goal);
 
     const progressCell = row.querySelector('.progress-cell');
     const progressBar = progressCell.querySelector('.progress-bar');
@@ -258,11 +258,26 @@ function updateProgressBar(row) {
     const progressPercent = (assigned / goal) * 100;
     progressBar.style.width = `${Math.min(Math.max(progressPercent, 0), 100)}%`;
 
-    if (assigned >= goal) {
-        progressBar.style.backgroundColor = 'green';
-    } else if (assigned > 0) {
-        progressBar.style.backgroundColor = '#fbc02d';
+    // Update progress bar color
+    if (assigned > goal) {
+        progressBar.style.backgroundColor = 'red'; 
+    } else if (assigned >= goal * 0.5) {
+        progressBar.style.backgroundColor = '#fbc02d'; // Yellow for >50%
     } else {
-        progressBar.style.backgroundColor = 'red';
+        progressBar.style.backgroundColor = 'green'; // Green for <=50%
+    }
+
+    // Add or update the over-budget flag
+    let overBudgetFlag = row.querySelector('.over-budget-flag');
+    if (assigned > goal) {
+        if (!overBudgetFlag) {
+            overBudgetFlag = document.createElement('span');
+            overBudgetFlag.classList.add('over-budget-flag');
+            overBudgetFlag.textContent = '⚠️ Over Budget!';
+            progressCell.appendChild(overBudgetFlag);
+        }
+        overBudgetFlag.style.display = 'inline'; 
+    } else if (overBudgetFlag) {
+        overBudgetFlag.style.display = 'none'; // Hide flag if no longer over budget
     }
 }
