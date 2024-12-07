@@ -694,6 +694,27 @@ th.desc .desc-arrow {
     transition: visibility 0s, opacity 0.3s ease;
 }
 
+select {
+    font-size: 16px;
+    padding: 10px;
+    margin: 8px 0;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #fff;
+    appearance: none;
+    background-image: url("../../resources/icons/dropdown-arrow.svg");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 14px;
+}
+
+select option {
+    padding: 8px 10px;
+    font-size: 16px;
+}
+
 input[type="text"], textarea {
     font-size: 16px;
     padding: 10px;

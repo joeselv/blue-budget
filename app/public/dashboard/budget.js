@@ -106,7 +106,7 @@ function openEditPopup(row) {
 
 document.addEventListener("DOMContentLoaded", async function() {
     const userID = '1';
-    let budgetID = '3';
+    let budgetID = '1';
     const categories = await loadCategories(userID, budgetID);
     populateCategoryTable(categories);
     const rows = document.querySelectorAll('.budget-table tbody tr:not(.add-category)');

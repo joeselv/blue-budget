@@ -460,6 +460,58 @@ app.post('/api/update-email', async (req, res) => {
   }
 });
 
+app.post('/api/transactions', async (req, res) => {
+  const {
+      merchant_name,
+      account_id,
+      category_id,
+      transaction_date,
+      amount,
+      transaction_type,
+      transaction_description
+  } = req.body;
+
+  // Validate required fields
+  if (!merchant_name || !account_id || !transaction_date || !amount || !transaction_type) {
+      return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  const query = `
+      INSERT INTO transactions (
+          merchant_name,
+          account_id,
+          category_id,
+          transaction_date,
+          amount,
+          transaction_type,
+          transaction_description,
+          insert_method
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'Manual')
+      RETURNING transaction_id;
+  `;
+
+  console.log('Inserting transaction:', query);
+
+  const values = [
+      merchant_name,
+      account_id,
+      category_id || null, // Handle null category_id
+      transaction_date,
+      amount,
+      transaction_type,
+      transaction_description || null // Handle null transaction_description
+  ];
+
+  try {
+      const result = await pool.query(query, values);
+      const transactionId = result.rows[0].transaction_id;
+      res.status(201).json({ message: 'Transaction saved successfully', transaction_id: transactionId });
+  } catch (error) {
+      console.error('Error saving transaction:', error);
+      res.status(500).json({ error: 'Failed to save transaction' });
+  }
+});
+
 // Update password endpoint
 app.post('/api/update-password', async (req, res) => {
     const { password } = req.body;
@@ -485,6 +537,8 @@ app.post('/api/update-password', async (req, res) => {
         res.status(500).json({ message: 'An error occurred. Please try again.' });
     }
 });
+
+
 
 app.listen(port, host, () => {
   console.log(`Server running at http://${host}:${port}`);
