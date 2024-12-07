@@ -292,10 +292,12 @@ function updateProgressBar(row) {
     // Update progress bar color
     if (assigned > goal) {
         progressBar.style.backgroundColor = 'red'; 
-    } else if (assigned >= goal * 0.5) {
-        progressBar.style.backgroundColor = '#fbc02d'; // Yellow for >50%
-    } else {
-        progressBar.style.backgroundColor = 'green'; // Green for <=50%
+    }
+    else if (assigned === goal) {
+        progressBar.style.backgroundColor = 'green';
+    }
+     else {
+        progressBar.style.backgroundColor = '#fbc02d';
     }
 
     // Add or update the over-budget flag
