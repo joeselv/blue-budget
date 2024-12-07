@@ -821,3 +821,76 @@ input[type="password"] {
     font-size: 14px; 
     box-sizing: border-box; 
 }
+
+.link-button {
+    background-color: #343C6A; 
+    color: white;
+    border: none; 
+    border-radius: 24px;
+    padding: 10px 20px;
+    font-size: 16px; 
+    cursor: pointer; 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+    transition: all 0.3s ease; 
+}
+
+.link-button:hover {
+    background-color: #1e49d8; 
+    transform: scale(1.05);
+}
+
+.account-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    margin: 10px 0;
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.account-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.account-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.account-info h3 {
+    font-size: 18px;
+    color: #343C6A;
+    margin: 0;
+}
+
+.account-info p {
+    font-size: 14px;
+    color: #8a8f98;
+    margin: 0;
+}
+
+.unlink-button {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease, transform 0.2s;
+}
+
+.unlink-button:hover {
+    background-color: #d43c3c;
+    transform: scale(1.05);
+}
+
+.unlink-button:active {
+    transform: scale(0.95);
+}

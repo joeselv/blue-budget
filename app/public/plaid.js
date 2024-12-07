@@ -1,5 +1,32 @@
 // document.addEventListener('DOMContentLoaded', function(){}
-document.addEventListener('DOMContentLoaded', function(){
+document.addEventListener('DOMContentLoaded', async () => {
+  const userID = '1';
+
+  try {
+    const accountsContainer = document.getElementById('linked-accounts-container');
+    const response = await fetch(`/accounts/${userID}`);
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const accounts = await response.json();
+    accountsContainer.innerHTML = accounts.map(account => `
+      <div class="account-item" id="account-item-${account.account_id}">
+          <div class="account-info">
+              <h3>${account.account_name}</h3>
+              <p>${account.account_type || ''}</p>
+              <p>Balance: $${parseFloat(account.balance).toFixed(2)}</p>
+          </div>
+          <button 
+              class="unlink-button" 
+              onclick="unlinkAccount(${parseInt(account.account_id)})">
+              Unlink
+          </button>
+      </div>
+    `).join('');
+  } catch (error) {
+    console.error('Error fetching accounts:', error);
+  }
+
   // menu items funcitonality
   const menuItems = document.querySelectorAll('.menu-item');        
   menuItems.forEach(item => {
@@ -30,7 +57,6 @@ document.addEventListener('DOMContentLoaded', function(){
         token: data.link_token,
         // get public_token
         onSuccess: async (public_token) => {
-          console.log('Public Token:', public_token);
           const accessResponse = await fetch('/api/plaid/exchange-public-token', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -71,20 +97,39 @@ async function loadAccounts(access_token) {
           return;
       }
 
-      accountsContainer.innerHTML = accounts.map(account => `
-          <div class="account-item">
-              <div class="account-info">
-                  <h3>${account.name}</h3>
-                  <p>${account.official_name || ''}</p>
-                  <p>Balance: $${account.balances.current.toFixed(2)}</p>
-              </div>
-              <button 
-                  onclick="unlinkAccount('${access_token}')" 
-                  class="unlink-button">
-                  Unlink
-              </button>
+      const data = await Promise.all(accounts.map(async account => {
+        const response = await fetch('/accounts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userID: '1',
+            accountName: account.name,
+            accountType: account.subtype,
+            balance: account.balances.current
+          })
+        });
+
+        if (!response.ok) {
+          console.error('Failed to insert account into DB:', account.name);
+        }
+        return response.json();
+      }));
+
+      accountsContainer.innerHTML = accounts.map((account, index) => `
+      <div class="account-item" id="account-item-${data[index].accountID}">
+          <div class="account-info">
+              <h3>${account.name}</h3>
+              <p>${account.official_name || ''}</p>
+              <p>Balance: $${account.balances.current.toFixed(2)}</p>
           </div>
-      `).join('');
+          <button 
+              onclick="unlinkAccount('${data[index].accountID}')" 
+              class="unlink-button">
+              Unlink
+          </button>
+      </div>
+  `).join('');
+
   } catch (error) {
       console.error('Error loading accounts:', error);
       accountsContainer.innerHTML = '<p>Error loading accounts. Please try again.</p>';
@@ -92,21 +137,22 @@ async function loadAccounts(access_token) {
 }
 
 // Function to unlink account
-async function unlinkAccount(access_token) {
-  console.log("unlink access",access_token);
+async function unlinkAccount(accountID) {
   try {
-      const response = await fetch('/api/plaid/unlink-account', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ accessToken:access_token })
+      const removeResponse = await fetch(`/accounts/${accountID}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' }
       });
 
-      if (!response.ok) {
-          throw new Error('Failed to unlink account');
+      if (!removeResponse.ok) {
+          throw new Error('Failed to remove account from database');
       }
 
-      // Refresh the accounts display
-      loadAccounts(access_token);
+      // Remove the account-info element from the DOM
+      const accountItem = document.querySelector(`#account-item-${accountID}`);
+      if (accountItem) {
+          accountItem.remove();
+      }
   } catch (error) {
       console.error('Error unlinking account:', error);
       alert('Failed to unlink account. Please try again.');

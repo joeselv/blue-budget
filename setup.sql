@@ -1,7 +1,6 @@
 CREATE DATABASE BUDGET;
 \c budget;
 
-CREATE TYPE accountType AS ENUM ('Checking', 'Savings', 'Credit', 'Investment');
 CREATE TYPE transactionType AS ENUM ('Income', 'Expense');
 
 CREATE TABLE users (
@@ -22,8 +21,8 @@ CREATE TABLE budgets (
 CREATE TABLE accounts (
     account_id SERIAL PRIMARY KEY,
     user_id INT,
-    account_name VARCHAR(20),
-    account_type accountType,
+    account_name VARCHAR(255),
+    account_type VARCHAR(255),
     balance DECIMAL(15, 2) DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
