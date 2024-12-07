@@ -235,7 +235,6 @@ async function fetchTransactions() {
 
     // Parse and log the response data
     const data = await response.json();
-    console.log("Transactions Response:", data);
     const transactions = data.transactions;
 
     // Insert transactions into the database
