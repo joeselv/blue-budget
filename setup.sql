@@ -48,6 +48,7 @@ CREATE TABLE transactions (
     amount DECIMAL(15, 2) NOT NULL,
     transaction_type transactionType,
     transaction_description VARCHAR(100),
+    insert_method VARCHAR(10) DEFAULT 'Automatic' CHECK (insert_method IN ('Manual', 'Automatic')),
     FOREIGN KEY (account_id) REFERENCES accounts(account_id),
     FOREIGN KEY (category_id) REFERENCES categories(category_id)
 );
