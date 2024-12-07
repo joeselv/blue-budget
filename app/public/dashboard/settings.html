@@ -40,10 +40,106 @@
 
         <div class="content">
             <div class="main-content">
+                <h2>Edit Profile</h2>
+                <form id="edit-profile-form" class="edit-form">
+                    <div class="form-group">
+                        <label for="email">Change Email:</label>
+                        <input type="text" id="email" name="email" placeholder="Enter New email">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Change Password:</label>
+                        <input type="password" id="password" name="password" placeholder="Enter New password">
+                    </div>
+
+                    <button type="submit" class="save-btn">Save Changes</button>
+                </form>
             </div>
         </div>
     </div>
 
     <script type="module" src="dashboard/common.js"></script>
+    <script>
+
+        document.getElementById('edit-profile-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            let emailUpdated = false;
+            let passwordUpdated = false;
+
+            // Check if email is filled and update if necessary
+            if (email) {
+                emailUpdated = await updateEmail(email);
+            }
+
+            // Check if password is filled and update if necessary
+            if (password) {
+                passwordUpdated = await updatePassword(password);
+            }
+
+            // Inform the user of the result
+            if (emailUpdated && passwordUpdated) {
+                alert('Both email and password updated successfully!');
+            } else if (emailUpdated) {
+                alert('Email updated successfully!');
+            } else if (passwordUpdated) {
+                alert('Password updated successfully!');
+            }
+        });
+
+
+
+        async function updateEmail(email) {
+            try {
+                const response = await fetch('/api/update-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password}),
+                });
+
+                if (response.ok) {
+                    document.getElementById('email').value = '';
+                    alert('email updated successfully!');
+                } else {
+                    const error = await response.json();
+                    alert(`Failed to update profile: ${error.message}`);
+                }
+            } catch (err) {
+                console.error('Error updating profile:', err);
+                alert('An error occurred. Please try again.');
+            } 
+        }
+
+        async function updatePassword(password) {
+
+            try {
+            const response = await fetch('/api/update-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ password }),
+            });
+
+            if (response.ok) {
+                // Clear the password input field after successful update
+                document.getElementById('password').value = '';
+                alert('Password updated successfully!');
+            } else {
+                const error = await response.json();
+                alert(`Failed to update password: ${error.message}`);
+            }
+        } catch (err) {
+            console.error('Error updating password:', err);
+            alert('An error occurred. Please try again.');
+        }
+    }
+        
+    </script>
 </body>
 </html>
