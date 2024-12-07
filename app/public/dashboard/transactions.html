@@ -40,7 +40,10 @@
 
         <div class="content">
             <div class="main-content">
-                <input type="text" id="searchBar" placeholder="Search Transactions...">
+                <div class="actions-bar">
+                    <input type="text" id="searchBar" placeholder="Search Transactions...">
+                    <button class="edit-category-btn" onclick="openPopup()">Add Transaction</button>
+                </div>
                 <table class="transactions-table">
                     <thead>
                         <tr>
@@ -102,7 +105,162 @@
             </div>
         </div>
     </div>
+    <div class="popup-overlay" id="popup-overlay">
+        <div class="popup-content">
+            <h2>Add New Transaction</h2>
+    
+            <label for="transaction-name">Merchant Name</label>
+            <input type="text" id="transaction-name" placeholder="Enter merchant name">
+    
+            <label for="transaction-amount">Amount</label>
+            <input type="number" id="transaction-amount" placeholder="Enter amount">
+    
+            <label for="transaction-date">Transaction Date</label>
+            <input type="date" id="transaction-date">
+    
+            <label for="transaction-type">Transaction Type</label>
+            <select id="transaction-type">
+                <option value="Expense">Expense</option>
+                <option value="Income">Income</option>
+            </select>
+    
+            <label for="transaction-description">Description</label>
+            <input type="text" id="transaction-description" placeholder="Enter description">
+    
+            <label for="transaction-category">Category</label>
+            <select id="transaction-category">
+                <option value="">Loading...</option>
+            </select>
+    
+            <div class="popup-buttons">
+                <button onclick="closePopup()">Cancel</button>
+                <button onclick="saveTransaction()" class="confirm-btn">Save</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        const menuItems = document.querySelectorAll('.menu-item');
+        
+        menuItems.forEach(item => {
+            item.addEventListener('click', () => {
+                menuItems.forEach(i => i.classList.remove('selected'));
+                item.classList.add('selected');
+        
+                const pageTitle = document.querySelector('.page-title');
+                const pageName = item.querySelector('span:last-child').textContent;
+                pageTitle.textContent = pageName;
+            });
+        });
+
+        // Logout button event listener
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/logout', { method: 'POST' });
+                if (response.ok) {
+                    window.location.href = '/'; 
+                } else {
+                    alert("Failed to log out. Please try again.");
+                }
+            } catch (error) {
+                console.error("Logout error:", error);
+                alert("An error occurred while logging out.");
+            }
+        });
+
+        function openPopup() {
+            const overlay = document.getElementById('popup-overlay');
+            overlay.style.visibility = 'visible';
+            overlay.style.opacity = '1';
+
+            // Fetch categories when the popup opens
+            fetchCategories();
+        }
+
+        async function fetchCategories() {
+            const categorySelect = document.getElementById('transaction-category');
+            try {
+                const response = await fetch('/categories?userID=1&budgetID=1');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch categories');
+                }
+                const categories = await response.json();
+                categorySelect.innerHTML = ''; // Clear existing options
+                categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category.category_id;
+                    option.textContent = category.category_name;
+
+                    // Add a custom data attribute for the icon URL
+                    option.setAttribute(
+                        'data-icon',
+                        `/resources/categoryIcons/${category.icon_name}`
+                    );
+
+                    categorySelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+                categorySelect.innerHTML = '<option value="">Error loading categories</option>';
+            }
+        }
+
+        function closePopup() {
+            const overlay = document.getElementById('popup-overlay');
+            overlay.style.visibility = 'hidden';
+            overlay.style.opacity = '0';
+            document.getElementById('transaction-category').value = '';
+            document.getElementById('transaction-description').value = '';
+            document.getElementById('transaction-type').value = '';
+            document.getElementById('transaction-date').value = '';
+            document.getElementById('transaction-amount').value = '';
+            document.getElementById('transaction-name').value = '';
+        }
+
+        async function saveTransaction() {
+            const merchantName = document.getElementById('transaction-name').value;
+            const amount = parseFloat(document.getElementById('transaction-amount').value);
+            const transactionDate = document.getElementById('transaction-date').value;
+            const transactionType = document.getElementById('transaction-type').value;
+            const transactionDescription = document.getElementById('transaction-description').value;
+            const categoryId = document.getElementById('transaction-category').value;
+            const accountId = 4; // Hardcoded value
+
+            if (!merchantName || !amount || !transactionDate || !transactionType || !categoryId) {
+                alert('Please fill out all required fields.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/transactions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        merchant_name: merchantName,
+                        amount,
+                        transaction_date: transactionDate,
+                        transaction_type: transactionType,
+                        transaction_description: transactionDescription,
+                        account_id: accountId,
+                        category_id: categoryId
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to save transaction');
+                }
+
+                alert('Transaction saved successfully!');
+                closePopup();
+                // Optionally, refresh the table or fetch updated transactions
+            } catch (error) {
+                console.error('Error saving transaction:', error);
+                alert('Error saving transaction.');
+            }
+        }
+
+
+
         document.addEventListener('DOMContentLoaded', async () => {
             const tableBody = document.getElementById('transactionsTableBody');
             const searchBar = document.getElementById('searchBar');
@@ -205,6 +363,7 @@
                             }
                         });
                     });
+
 
                     
                     tableBody.appendChild(row);

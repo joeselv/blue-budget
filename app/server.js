@@ -246,7 +246,6 @@ async function fetchTransactions() {
 
     // Parse and log the response data
     const data = await response.json();
-    //console.log("Transactions Response:", data);
     const transactions = data.transactions;
 
     //clear all previous transactions that were pulled
@@ -269,7 +268,7 @@ async function fetchTransactions() {
       try {
         const query = `
           INSERT INTO transactions (account_id, amount, transaction_date, merchant_name)
-          VALUES (1, $1, $2, $3)
+          VALUES (4, $1, $2, $3)
           ON CONFLICT (transaction_id) DO NOTHING
         `;
         await pool.query(query, [
@@ -492,6 +491,58 @@ app.post('/api/update-email', async (req, res) => {
   }
 });
 
+app.post('/api/transactions', async (req, res) => {
+  const {
+      merchant_name,
+      account_id,
+      category_id,
+      transaction_date,
+      amount,
+      transaction_type,
+      transaction_description
+  } = req.body;
+
+  // Validate required fields
+  if (!merchant_name || !account_id || !transaction_date || !amount || !transaction_type) {
+      return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  const query = `
+      INSERT INTO transactions (
+          merchant_name,
+          account_id,
+          category_id,
+          transaction_date,
+          amount,
+          transaction_type,
+          transaction_description,
+          insert_method
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'Manual')
+      RETURNING transaction_id;
+  `;
+
+  console.log('Inserting transaction:', query);
+
+  const values = [
+      merchant_name,
+      account_id,
+      category_id || null, // Handle null category_id
+      transaction_date,
+      amount,
+      transaction_type,
+      transaction_description || null // Handle null transaction_description
+  ];
+
+  try {
+      const result = await pool.query(query, values);
+      const transactionId = result.rows[0].transaction_id;
+      res.status(201).json({ message: 'Transaction saved successfully', transaction_id: transactionId });
+  } catch (error) {
+      console.error('Error saving transaction:', error);
+      res.status(500).json({ error: 'Failed to save transaction' });
+  }
+});
+
 // Update password endpoint
 app.post('/api/update-password', async (req, res) => {
     const { password } = req.body;
@@ -516,6 +567,46 @@ app.post('/api/update-password', async (req, res) => {
         console.error('Error updating password:', err);
         res.status(500).json({ message: 'An error occurred. Please try again.' });
     }
+});
+
+app.get('/accounts/:userID', async (req, res) => {
+  const { userID } = req.params;
+  try {
+    const result = await pool.query('SELECT * FROM accounts WHERE user_id = $1', [userID]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: 'An error occurred while fetching accounts.' });
+  }
+});
+
+app.post('/accounts', async (req, res) => {
+  const { userID, accountName, accountType, balance } = req.body;
+  if (!userID || !accountName || !accountType) {
+    return res.status(400).send({ error: 'userID, accountName, and accountType are required.' });
+  }
+  console.log(req.body);
+  try {
+    const result = await pool.query(
+      'INSERT INTO accounts (user_id, account_name, account_type, balance) VALUES ($1, $2, $3, $4) RETURNING account_id',
+      [userID, accountName, accountType, balance || 0]
+    );
+    res.status(201).send({ accountID: result.rows[0].account_id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: 'An error occurred while creating the account.' });
+  }
+});
+
+app.delete('/accounts/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query('DELETE FROM accounts WHERE account_id = $1', [id]);
+    res.sendStatus(204);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: 'An error occurred while deleting the account.' });
+  }
 });
 
 app.listen(port, host, () => {
