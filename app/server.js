@@ -235,8 +235,17 @@ async function fetchTransactions() {
 
     // Parse and log the response data
     const data = await response.json();
-    console.log("Transactions Response:", data);
+    //console.log("Transactions Response:", data);
     const transactions = data.transactions;
+
+    //clear all previous transactions that were pulled
+    try {
+      await pool.query("DELETE FROM transactions");
+      //console.log("Transactions table cleared.");
+    } catch (clearError) {
+      console.error("Failed to clear transactions table:", clearError);
+      return; // Stop further execution if clearing the table fails
+    }
 
     // Insert transactions into the database
     for (const transaction of transactions) {
@@ -426,6 +435,55 @@ app.get('/budgets', async (req, res) => {
     console.error(err);
     res.status(500).send({ error: 'An error occurred while fetching budgets.' });
   }
+});
+
+app.post('/api/update-email', async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    // Check if the email already exists in the database
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (result.rows.length > 0) {
+      return res.status(400).json({ message: 'Email already in use' });
+    }
+
+    // Update the user's email
+    const updateResult = await pool.query('UPDATE users SET email = $1 WHERE user_id = 1', [email]);
+    if (updateResult.rowCount > 0) {
+      return res.status(200).json({ message: 'Email updated successfully' });
+    } else {
+      return res.status(400).json({ message: 'No changes made' });
+    }
+  } catch (err) {
+    console.error('Database error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update password endpoint
+app.post('/api/update-password', async (req, res) => {
+    const { password } = req.body;
+
+    if (!password) {
+        return res.status(400).json({ message: 'Password is required.' });
+    }
+
+    try {
+        // Hash the password using argon2
+        const hashedPassword = await argon2.hash(password);
+
+        // Update the password in the database
+        const result = await pool.query('UPDATE users SET userpassword = $1 WHERE user_id = 1', [hashedPassword]);
+
+        if (result.rowCount > 0) {
+            return res.status(200).json({ message: 'Password updated successfully.' });
+        } else {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+    } catch (err) {
+        console.error('Error updating password:', err);
+        res.status(500).json({ message: 'An error occurred. Please try again.' });
+    }
 });
 
 app.listen(port, host, () => {
