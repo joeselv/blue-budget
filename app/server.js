@@ -495,12 +495,11 @@ app.post('/api/transactions', async (req, res) => {
       category_id,
       transaction_date,
       amount,
-      transaction_type,
       transaction_description
   } = req.body;
 
   // Validate required fields
-  if (!merchant_name || !account_id || !transaction_date || !amount || !transaction_type) {
+  if (!merchant_name || !account_id || !transaction_date || !amount) {
       return res.status(400).json({ error: 'Missing required fields' });
   }
 
@@ -511,10 +510,9 @@ app.post('/api/transactions', async (req, res) => {
           category_id,
           transaction_date,
           amount,
-          transaction_type,
           transaction_description,
           insert_method
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'Manual')
+      ) VALUES ($1, $2, $3, $4, $5, $6, 'Manual')
       RETURNING transaction_id;
   `;
 
@@ -526,7 +524,6 @@ app.post('/api/transactions', async (req, res) => {
       category_id || null, // Handle null category_id
       transaction_date,
       amount,
-      transaction_type,
       transaction_description || null // Handle null transaction_description
   ];
 
