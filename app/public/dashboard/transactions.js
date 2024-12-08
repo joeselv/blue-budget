@@ -69,7 +69,6 @@ function closePopup() {
     overlay.style.opacity = '0';
     document.getElementById('transaction-category').value = '';
     document.getElementById('transaction-description').value = '';
-    document.getElementById('transaction-type').value = '';
     document.getElementById('transaction-date').value = '';
     document.getElementById('transaction-amount').value = '';
     document.getElementById('transaction-name').value = '';
@@ -79,12 +78,11 @@ async function saveTransaction() {
     const merchantName = document.getElementById('transaction-name').value;
     const amount = parseFloat(document.getElementById('transaction-amount').value);
     const transactionDate = document.getElementById('transaction-date').value;
-    const transactionType = document.getElementById('transaction-type').value;
     const transactionDescription = document.getElementById('transaction-description').value;
     const categoryId = document.getElementById('transaction-category').value;
     const accountId = 1; // Hardcoded value
 
-    if (!merchantName || !amount || !transactionDate || !transactionType || !categoryId) {
+    if (!merchantName || !amount || !transactionDate || !categoryId) {
         alert('Please fill out all required fields.');
         return;
     }
@@ -97,7 +95,6 @@ async function saveTransaction() {
                 merchant_name: merchantName,
                 amount,
                 transaction_date: transactionDate,
-                transaction_type: transactionType,
                 transaction_description: transactionDescription,
                 account_id: accountId,
                 category_id: categoryId
@@ -112,7 +109,7 @@ async function saveTransaction() {
         closePopup();
         // Optionally, refresh the table or fetch updated transactions
     } catch (error) {
-        console.error('Error saving transaction:', error);
+        console.log('Error saving transaction:', error);
         alert('Error saving transaction.');
     }
 }
@@ -122,7 +119,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const searchBar = document.getElementById('searchBar');
     let transactions = [];
     let categories = [];
-
     const userID = "1"; // Replace with actual userID
     const budgetID = "1"; // Replace with actual budgetID
 
@@ -166,7 +162,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </td>
                 <td>${new Intl.DateTimeFormat('en-CA').format(new Date(transaction.transaction_date))}</td>
                 <td class="${transaction.amount < 0 ? 'negative' : 'positive'}">${transaction.amount}</td>
-                <td>${transaction.transaction_type}</td>
                 <td>${transaction.merchant_name}</td>
             `;
 

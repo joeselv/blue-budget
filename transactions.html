@@ -36,7 +36,6 @@
                 <th>Category Type</th>
                 <th>Transaction Date</th>
                 <th>Amount</th>
-                <th>Transaction Type</th>
                 <th>Transaction Description</th>
             </tr>
         </thead>
@@ -79,10 +78,6 @@
                     const amountCell = document.createElement('td');
                     amountCell.textContent = transaction.amount;
                     row.appendChild(amountCell);
-
-                    const transactionTypeCell = document.createElement('td');
-                    transactionTypeCell.textContent = transaction.transactiontype;
-                    row.appendChild(transactionTypeCell);
 
                     const transactionDescriptionCell = document.createElement('td');
                     transactionDescriptionCell.textContent = transaction.transactiondescription;
