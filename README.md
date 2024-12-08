@@ -26,7 +26,9 @@ There are two ways to run the application. Choose one of the following methods b
 
 ## Method 1: Using Environment Variables (Recommended for Mac/Linux, but will work for Windows with extra steps)
 
-If you are using **Windows**, you will need to ensure that **PSQL** is set up as a path variable. After that, create a `.env` file in your root directory with the following content:
+If you are using **Windows**, you will need to ensure that **PSQL** is set up as a path variable. 
+
+After that, create a `.env` file in your root directory with the following content:
 
 ```
 PGUSER=postgres
@@ -41,9 +43,9 @@ PLAID_SECRET=your_secret_here
 ```
 
 After which you can utilize the following commands in your local terminal:
- - npm install
- - npm run setup:local - runs database setup
- - npm run start:local - runs the application
+ - `npm install`
+ - `npm run setup:local` - (runs database setup)
+ - `npm run start:local` - (runs the application)
 
 ## Method 2: Manual Setup (Recommended for Windows as it avoids setting up PSQL in path; also works for Mac/Linux)
 
@@ -51,8 +53,8 @@ If you prefer not to use the `.env` file, you can manually set up the database. 
 
 Once the database is created, run the server manually using: `node server.js` (runs the application) which is located in the /app folder
 
-
-After running those commands, you should be able to run and access the website locally using the url http://localhost:3000.
+***
+After utilizing one of the two above methods you should be able to run and access the website locally using the url http://localhost:3000.
 
 
 
