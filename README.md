@@ -3,43 +3,6 @@ CS-375 Budgeting webapp
 
 To run the website locally you will need to have node js, and postgres downloaded.
 
-From there please create a file called env.json and paste the following json object inside:
-```
-{
-  "name": "blue-budget",
-  "version": "1.0.0",
-  "description": "budgeting app",
-  "main": "index.js",
-  "scripts": {
-    "start": "cd app; node server.js",
-    "setup": "fly postgres connect --app bluebudgetdb < setupDeploy.sql",
-    "start:local": "env-cmd node app/server.js",
-    "setup:local": "env-cmd psql -d postgres -c 'create database bluebudget' -f setupDeploy.sql"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/joeselv/blue-budget.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/joeselv/blue-budget/issues"
-  },
-  "homepage": "https://github.com/joeselv/blue-budget#readme",
-  "dependencies": {
-    "argon2": "^0.30.3",
-    "cookie-parser": "^1.4.6",
-    "env-cmd": "^10.1.0",
-    "express": "^4.21.1",
-    "express-session": "^1.18.1",
-    "pg": "^8.11.1",
-    "plaid": "^29.0.0"
-  },
-  "devDependencies": {
-    "@flydotio/dockerfile": "^0.5.9"
-  }
-}
-```
 Then, inside the root folder add a directory called config (case sensitive), and create a file inside called env.json and paste in the following json object replacing the user and password with your own local postgres information:
 ```
 {
