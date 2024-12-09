@@ -79,7 +79,9 @@ async function saveTransaction() {
     const amount = parseFloat(document.getElementById('transaction-amount').value);
     const transactionDate = document.getElementById('transaction-date').value;
     const transactionDescription = document.getElementById('transaction-description').value;
-    const categoryId = document.getElementById('transaction-category').value;
+    const categorySelect = document.getElementById('transaction-category');
+    const categoryId = categorySelect.value;
+    const categoryName = categorySelect.options[categorySelect.selectedIndex].text;
     const accountId = 1; // Hardcoded value
 
     if (!merchantName || !amount || !transactionDate || !categoryId) {
@@ -106,8 +108,18 @@ async function saveTransaction() {
         }
 
         alert('Transaction saved successfully!');
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td>-1</td>
+            <td>${accountId}</td>
+            <td>${categoryName}</td>
+            <td>${new Intl.DateTimeFormat('en-CA').format(new Date(transactionDate))}</td>
+            <td class="${amount < 0 ? 'negative' : 'positive'}">${amount}</td>
+            <td>${transactionDescription}</td>
+        `;
+        const tableBody = document.getElementById('transactionsTableBody');
+        tableBody.appendChild(newRow);
         closePopup();
-        // Optionally, refresh the table or fetch updated transactions
     } catch (error) {
         console.log('Error saving transaction:', error);
         alert('Error saving transaction.');
